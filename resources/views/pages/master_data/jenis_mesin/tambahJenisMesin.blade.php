@@ -81,7 +81,6 @@
                 fuel_type: document.getElementById('fuel_type').value,
             };
 
-            // Validasi sederhana
             if (!data.name || !data.engine_cap || !data.oil_cap) {
                 Swal.fire('Oops!', 'Semua field wajib diisi brok!', 'warning');
                 return;

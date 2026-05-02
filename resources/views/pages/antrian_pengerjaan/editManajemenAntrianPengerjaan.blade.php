@@ -1,21 +1,23 @@
-{{-- resources/views/pages/antrian_pengerjaan/tambahManajemenAntrianPengerjaan.blade.php --}}
+{{-- resources/views/pages/antrian_pengerjaan/editManajemenAntrianPengerjaan.blade.php --}}
 @extends('layouts.master')
 
-@section('title', 'Tambah Antrian Pengerjaan')
+@section('title', 'Edit Antrian Pengerjaan')
 @section('title_header', 'Layanan Servis | Antrian Pengerjaan')
 
 @section('form_icon')
     <div class="w-12 h-12 bg-[#1273EB] rounded-[15px] flex items-center justify-center text-white shadow-lg shadow-blue-200">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
         </svg>
     </div>
 @endsection
 
-@section('form_title', 'Menambahkan Mobil Masuk')
+@section('form_title', 'Edit Data Mobil Masuk')
 
 @section('form_fields')
 <div class="main-form-content">
+
     {{-- =========================================================
          SECTION 1 : Informasi Pemilik Kendaraan
     ========================================================= --}}
@@ -98,7 +100,7 @@
             <h3 class="text-[14px] font-bold text-[#213F5C]">Penggunaan Suku Cadang</h3>
         </div>
 
-        {{-- List item suku cadang yang sudah ditambahkan --}}
+        {{-- List item suku cadang yang sudah ada --}}
         <div id="sukuCadangList" class="space-y-3"></div>
 
         {{-- Form inline tambah suku cadang (hidden by default) --}}
@@ -109,7 +111,7 @@
                     class="w-full px-5 py-3.5 bg-white border border-[#E5E9F2] rounded-xl outline-none focus:border-[#1273EB] focus:ring-2 focus:ring-[#1273EB]/10 transition-all text-[13px] text-[#213F5C] placeholder-gray-300">
             </div>
 
-            {{-- ── Custom Dropdown Stok (sesuai desain Frame_64) ── --}}
+            {{-- Custom Dropdown Stok --}}
             <div>
                 <label class="block text-[14px] font-bold text-[#213F5C] mb-2">Stok</label>
                 <div class="relative" id="stokDropdownWrapper">
@@ -127,9 +129,7 @@
                     </button>
                     <div id="stokDropdownList"
                         class="hidden absolute z-50 left-0 right-0 mt-2 bg-white border border-[#E5E9F2] rounded-2xl shadow-xl overflow-hidden">
-                        <div id="stokDropdownItems" class="max-h-[380px] overflow-y-auto custom-scrollbar">
-                            {{-- Diisi oleh JS --}}
-                        </div>
+                        <div id="stokDropdownItems" class="max-h-[380px] overflow-y-auto custom-scrollbar"></div>
                     </div>
                 </div>
                 <input type="hidden" id="inputStok" value="">
@@ -170,8 +170,8 @@
 @section('content')
     @include('layouts.form_wrapper', [
         'backUrl'       => route('antrian-pengerjaan.index'),
-        'submitBtnText' => 'Simpan Data',
-        'sectionTitle'  => 'Informasi Data Servis',
+        'submitBtnText' => 'Simpan Perubahan',
+        'sectionTitle'  => 'Edit Informasi Data Servis',
     ])
 
     <style>
@@ -179,20 +179,13 @@
             max-width: 100%;
             overflow: visible;
         }
-
         html, body {
             height: 100%;
             margin: 0;
         }
-
         #stokDropdownWrapper {
             position: relative;
         }
-
-        .form-container-class {
-            overflow: visible !important;
-        }
-
         .stok-option-item {
             display: flex;
             align-items: stretch;
@@ -200,15 +193,9 @@
             cursor: pointer;
             transition: background 0.15s;
         }
-        .stok-option-item:last-child {
-            border-bottom: none;
-        }
-        .stok-option-item:hover {
-            background-color: #F9FBFF;
-        }
-        .stok-option-item.selected {
-            background-color: #EAF2FF;
-        }
+        .stok-option-item:last-child { border-bottom: none; }
+        .stok-option-item:hover { background-color: #F9FBFF; }
+        .stok-option-item.selected { background-color: #EAF2FF; }
         .stok-option-left {
             display: flex;
             flex-direction: column;
@@ -219,18 +206,8 @@
             min-width: 64px;
             background-color: #F9FBFF;
         }
-        .stok-option-left-label {
-            font-size: 11px;
-            color: #9CA3AF;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-        .stok-option-left-value {
-            font-size: 22px;
-            font-weight: 800;
-            color: #213F5C;
-            line-height: 1;
-        }
+        .stok-option-left-label { font-size: 11px; color: #9CA3AF; font-weight: 600; margin-bottom: 2px; }
+        .stok-option-left-value { font-size: 22px; font-weight: 800; color: #213F5C; line-height: 1; }
         .stok-option-right {
             display: flex;
             flex-direction: column;
@@ -238,116 +215,117 @@
             padding: 12px 16px;
             flex: 1;
         }
-        .stok-option-name {
-            font-size: 14px;
-            font-weight: 800;
-            color: #213F5C;
-            margin-bottom: 4px;
-        }
-        .stok-option-name span.qty {
-            font-size: 13px;
-            font-weight: 600;
-            color: #6B7280;
-            margin-left: 6px;
-        }
-        .stok-option-meta {
-            font-size: 11px;
-            color: #9CA3AF;
-        }
-        .stok-option-meta span {
-            margin-right: 4px;
-        }
-
         #stokDropdownItems {
             max-height: 320px !important;
             overflow-y: auto !important;
             display: block !important;
         }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
     </style>
 
     <script>
-        let isDirty = false;
+        // ── Ambil ID antrian dari sessionStorage ──────────────────────────────────
+        function getAntrianId() {
+            const fromSession = sessionStorage.getItem('currentAntrianId');
+            if (fromSession) return parseInt(fromSession, 10);
+            const segments = window.location.pathname.split('/').filter(Boolean);
+            const lastSeg  = segments[segments.length - 1];
+            const parsed   = parseInt(lastSeg, 10);
+            return isNaN(parsed) ? null : parsed;
+        }
 
         // ── Data dummy stok (TODO Backend: ganti dengan data dari API/Controller) ──
         const dummyStokList = [
-            {
-                id            : 1,
-                nama          : 'Q8 Oils 5W40 Excel',
-                stok          : 2,
-                harga         : 'Rp 700.000',
-                jumlah_satuan : '1 pcs',
-                tanggal       : '01 Jan 2025',
-                supplier      : 'Milan Motors',
-                cabang        : 'Pelajar Pejuang',
-            },
-            {
-                id            : 2,
-                nama          : 'Filter Oli BMW E46',
-                stok          : 5,
-                harga         : 'Rp 150.000',
-                jumlah_satuan : '1 pcs',
-                tanggal       : '15 Des 2024',
-                supplier      : 'AutoParts Indo',
-                cabang        : 'Pelajar Pejuang',
-            },
-            {
-                id            : 3,
-                nama          : 'Busi NGK Iridium',
-                stok          : 8,
-                harga         : 'Rp 120.000',
-                jumlah_satuan : '1 pcs',
-                tanggal       : '20 Des 2024',
-                supplier      : 'NGK Official',
-                cabang        : 'Pelajar Pejuang',
-            },
-            {
-                id            : 4,
-                nama          : 'Besi ingridium',
-                stok          : 8,
-                harga         : 'Rp 300.000',
-                jumlah_satuan : '1 pcs',
-                tanggal       : '26 Des 2024',
-                supplier      : 'NGK Official',
-                cabang        : 'Pelajar Pejuang',
-            },
-            {
-                id            : 5,
-                nama          : 'Oli Shell Helix',
-                stok          : 4,
-                harga         : 'Rp 120.000',
-                jumlah_satuan : '1 pcs',
-                tanggal       : '20 Jun 2024',
-                supplier      : 'Milan Motors',
-                cabang        : 'Pelajar Pejuang',
-            },
+            { id: 1, nama: 'Q8 Oils 5W40 Excel',  stok: 2, harga: 'Rp 700.000', jumlah_satuan: '1 pcs', tanggal: '01 Jan 2025', supplier: 'Milan Motors',  cabang: 'Pelajar Pejuang' },
+            { id: 2, nama: 'Filter Oli BMW E46',   stok: 5, harga: 'Rp 150.000', jumlah_satuan: '1 pcs', tanggal: '15 Des 2024', supplier: 'AutoParts Indo', cabang: 'Pelajar Pejuang' },
+            { id: 3, nama: 'Busi NGK Iridium',     stok: 8, harga: 'Rp 120.000', jumlah_satuan: '1 pcs', tanggal: '20 Des 2024', supplier: 'NGK Official',   cabang: 'Pelajar Pejuang' },
+            { id: 4, nama: 'Besi ingridium',       stok: 8, harga: 'Rp 300.000', jumlah_satuan: '1 pcs', tanggal: '26 Des 2024', supplier: 'NGK Official',   cabang: 'Pelajar Pejuang' },
+            { id: 5, nama: 'Oli Shell Helix',      stok: 4, harga: 'Rp 120.000', jumlah_satuan: '1 pcs', tanggal: '20 Jun 2024', supplier: 'Milan Motors',   cabang: 'Pelajar Pejuang' },
         ];
 
-        // ── State dropdown stok ───────────────────────────────────────────────────
-        let selectedStokId   = null;
-        let selectedStokData = null;
+        // ── State ─────────────────────────────────────────────────────────────────
+        let selectedStokId     = null;
+        let selectedStokData   = null;
         let isStokDropdownOpen = false;
+        let sukuCadangItems    = [];
+        let isDirty            = false;
 
-        // ── Render opsi stok ke dalam dropdown ───────────────────────────────────
+        // ── Helper escHtml ────────────────────────────────────────────────────────
+        function escHtml(str) {
+            const d = document.createElement('div');
+            d.appendChild(document.createTextNode(str || ''));
+            return d.innerHTML;
+        }
+
+        // ── Isi form dengan data yang sudah ada ───────────────────────────────────
+        function populateForm(antrian) {
+            document.getElementById('name').value          = antrian.name          || '';
+            document.getElementById('phone').value         = antrian.phone         || '';
+            document.getElementById('address').value       = antrian.address       || '';
+            document.getElementById('car_model').value     = antrian.car_model     || '';
+            document.getElementById('license_plate').value = antrian.license_plate || '';
+            document.getElementById('engine_code').value   = antrian.engine_code   || '';
+            document.getElementById('km_masuk').value      = antrian.km_masuk      || '';
+
+            // Isi suku cadang
+            sukuCadangItems = antrian.suku_cadang ? JSON.parse(JSON.stringify(antrian.suku_cadang)) : [];
+            syncHiddenJSON();
+            renderSukuCadang();
+        }
+
+        // ── Render suku cadang list ───────────────────────────────────────────────
+        function renderSukuCadang() {
+            const listEl = document.getElementById('sukuCadangList');
+            listEl.innerHTML = '';
+
+            if (sukuCadangItems.length === 0) return;
+
+            sukuCadangItems.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'flex items-center justify-between p-4 bg-[#F9FBFF] rounded-[12px] border border-[#E5E9F2]';
+                el.innerHTML = `
+                    <div>
+                        <p class="text-[13px] font-bold text-[#213F5C]">${escHtml(item.nama)}</p>
+                        <p class="text-[11px] text-gray-400 mt-0.5">${escHtml(item.deskripsi || '-')}
+                            ${item.harga && item.harga !== '-' ? `<span class="ml-1 text-[#1273EB] font-semibold">• ${escHtml(item.harga)}</span>` : ''}
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[12px] font-bold text-[#213F5C]">${escHtml(item.jumlah)}</span>
+                        <button type="button" onclick="hapusSukuCadang(${item.id})"
+                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-[#FFF5F5] border border-[#FFE0E0] text-[#FF4D4D] hover:bg-[#FFEBEB] transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                listEl.appendChild(el);
+            });
+        }
+
+        function hapusSukuCadang(id) {
+            sukuCadangItems = sukuCadangItems.filter(i => i.id !== id);
+            renderSukuCadang();
+            syncHiddenJSON();
+            isDirty = true;
+        }
+
+        function syncHiddenJSON() {
+            document.getElementById('inputSukuCadangJSON').value = JSON.stringify(sukuCadangItems);
+        }
+
+        // ── Dropdown Stok ─────────────────────────────────────────────────────────
         function renderStokOptions(keyword = '') {
-            const container = document.getElementById('stokDropdownItems');
+            const container    = document.getElementById('stokDropdownItems');
             container.innerHTML = '';
 
-            const filteredList = dummyStokList.filter(stok =>
-                stok.nama.toLowerCase().includes(keyword.toLowerCase())
+            const filteredList = dummyStokList.filter(s =>
+                s.nama.toLowerCase().includes(keyword.toLowerCase())
             );
 
             if (filteredList.length === 0) {
@@ -358,7 +336,6 @@
             filteredList.forEach(stok => {
                 const div = document.createElement('div');
                 div.className = 'stok-option-item' + (selectedStokId === stok.id ? ' selected' : '');
-
                 div.innerHTML = `
                     <div class="stok-option-left">
                         <span class="stok-option-left-label">Stok</span>
@@ -384,13 +361,11 @@
             });
         }
 
-        // ── Pilih stok ────────────────────────────────────────────────────────────
         function selectStok(stok) {
             selectedStokId   = stok.id;
             selectedStokData = stok;
-
-            document.getElementById('inputStok').value      = stok.id;
-            document.getElementById('inputStokLabel').value = stok.nama;
+            document.getElementById('inputStok').value       = stok.id;
+            document.getElementById('inputStokLabel').value  = stok.nama;
 
             const namaBarang = document.getElementById('inputNamaBarang');
             if (namaBarang) namaBarang.value = stok.nama;
@@ -422,20 +397,12 @@
             closeStokDropdown();
         }
 
-        // ── Toggle / open / close dropdown ───────────────────────────────────────
         function toggleStokDropdown() {
-            if (isStokDropdownOpen) {
-                closeStokDropdown();
-            } else {
-                openStokDropdown();
-            }
+            isStokDropdownOpen ? closeStokDropdown() : openStokDropdown();
         }
 
         function openStokDropdown() {
-            // FIX: hanya render ulang jika belum terbuka, cegah DOM reflow berulang
-            if (!isStokDropdownOpen) {
-                renderStokOptions();
-            }
+            if (!isStokDropdownOpen) renderStokOptions();
             document.getElementById('stokDropdownList').classList.remove('hidden');
             const chevron = document.getElementById('stokDropdownChevron');
             if (chevron) chevron.style.transform = 'rotate(180deg)';
@@ -449,22 +416,11 @@
             isStokDropdownOpen = false;
         }
 
-        // Tutup dropdown ketika klik di luar
-        document.addEventListener('click', (e) => {
-            const wrapper = document.getElementById('stokDropdownWrapper');
-            if (wrapper && !wrapper.contains(e.target)) {
-                closeStokDropdown();
-            }
-        });
-
-        // ── Reset tampilan dropdown ke kondisi awal ───────────────────────────────
         function resetStokDropdown() {
             selectedStokId   = null;
             selectedStokData = null;
             document.getElementById('inputStok').value      = '';
             document.getElementById('inputStokLabel').value = '';
-
-            // FIX: rebuild hanya konten dalam contentContainer, bukan seluruh wrapper
             const contentContainer = document.getElementById('stokDropdownContent');
             if (contentContainer) {
                 contentContainer.innerHTML = `
@@ -479,25 +435,24 @@
             closeStokDropdown();
         }
 
-        // ── Suku Cadang State ─────────────────────────────────────────────────────
-        let sukuCadangItems = [];
+        // Tutup dropdown klik di luar
+        document.addEventListener('click', (e) => {
+            const wrapper = document.getElementById('stokDropdownWrapper');
+            if (wrapper && !wrapper.contains(e.target)) closeStokDropdown();
+        });
 
+        // ── Suku Cadang Form Listeners ────────────────────────────────────────────
         const btnTambah   = document.getElementById('btnTambahSukuCadang');
         const formSC      = document.getElementById('formSukuCadang');
         const btnSimpanSC = document.getElementById('btnSimpanSukuCadang');
         const btnBatalSC  = document.getElementById('btnBatalSukuCadang');
-        const listEl      = document.getElementById('sukuCadangList');
-        const hiddenJSON  = document.getElementById('inputSukuCadangJSON');
 
         btnTambah.addEventListener('click', () => {
             formSC.classList.remove('hidden');
             btnTambah.classList.add('hidden');
-
             document.getElementById('inputNamaBarang').value = '';
             document.getElementById('inputJumlah').value     = '';
             resetStokDropdown();
-
-            // FIX: fokus tanpa menyebabkan scroll jump
             requestAnimationFrame(() => {
                 document.getElementById('inputNamaBarang')?.focus({ preventScroll: true });
             });
@@ -543,55 +498,14 @@
             formSC.classList.add('hidden');
             btnTambah.classList.remove('hidden');
             resetStokDropdown();
+            isDirty = true;
         });
 
-        function hapusSukuCadang(id) {
-            sukuCadangItems = sukuCadangItems.filter(i => i.id !== id);
-            renderSukuCadang();
-            syncHiddenJSON();
-        }
-
-        function syncHiddenJSON() {
-            hiddenJSON.value = JSON.stringify(sukuCadangItems);
-        }
-
-        function renderSukuCadang() {
-            listEl.innerHTML = '';
-            sukuCadangItems.forEach(item => {
-                const el = document.createElement('div');
-                el.className = 'flex items-center justify-between p-4 bg-[#F9FBFF] rounded-[12px] border border-[#E5E9F2]';
-                el.innerHTML = `
-                    <div>
-                        <p class="text-[13px] font-bold text-[#213F5C]">${escHtml(item.nama)}</p>
-                        <p class="text-[11px] text-gray-400 mt-0.5">${escHtml(item.deskripsi || '-')}</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-[12px] font-bold text-[#213F5C]">${escHtml(item.jumlah)}</span>
-                        <button type="button" onclick="hapusSukuCadang(${item.id})"
-                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-[#FFF5F5] border border-[#FFE0E0] text-[#FF4D4D] hover:bg-[#FFEBEB] transition-all">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
-                    </div>
-                `;
-                listEl.appendChild(el);
-            });
-        }
-
-        function escHtml(str) {
-            const d = document.createElement('div');
-            d.appendChild(document.createTextNode(str || ''));
-            return d.innerHTML;
-        }
-
-        // ── Filter dropdown saat mengetik di inputNamaBarang ─────────────────────
+        // Filter stok saat mengetik nama barang
         document.getElementById('inputNamaBarang').addEventListener('input', function (e) {
             const keyword = e.target.value.trim();
             if (keyword.length > 0) {
                 renderStokOptions(keyword);
-                // FIX: buka tanpa memanggil renderStokOptions ulang di openStokDropdown
                 document.getElementById('stokDropdownList').classList.remove('hidden');
                 const chevron = document.getElementById('stokDropdownChevron');
                 if (chevron) chevron.style.transform = 'rotate(180deg)';
@@ -610,7 +524,7 @@
             if (isDirty) { e.preventDefault(); e.returnValue = ''; }
         });
 
-        // ── Submit — simpan ke localStorage ───────────────────────────────────────
+        // ── Submit — update data di localStorage ──────────────────────────────────
         document.getElementById('submitBtnApi').addEventListener('click', async (e) => {
             e.preventDefault();
 
@@ -623,54 +537,110 @@
                 return;
             }
 
-            Swal.fire({ title: 'Menyimpan data...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            Swal.fire({ title: 'Menyimpan perubahan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-            const list  = JSON.parse(localStorage.getItem('antrianList') || '[]');
-            const newId = list.length > 0 ? Math.max(...list.map(i => i.id)) + 1 : 1;
+            const id   = getAntrianId();
+            const list = JSON.parse(localStorage.getItem('antrianList') || '[]');
+            const idx  = list.findIndex(item => item.id === id);
+
+            if (idx === -1) {
+                Swal.fire('Error', 'Data antrian tidak ditemukan!', 'error');
+                return;
+            }
 
             const now = new Date();
             const formattedDate = now.toLocaleDateString('id-ID', {
                 day: '2-digit', month: 'long', year: 'numeric',
             }) + ', ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
-            const userName = localStorage.getItem('user_name') || 'Admin';
+            // Update field — pertahankan field yang tidak diedit (id, status, created_by, created_at)
+            list[idx].name          = nameVal;
+            list[idx].phone         = phoneVal;
+            list[idx].address       = addressVal;
+            list[idx].car_model     = document.getElementById('car_model').value.trim()     || '-';
+            list[idx].license_plate = document.getElementById('license_plate').value.trim() || '-';
+            list[idx].engine_code   = document.getElementById('engine_code').value.trim()   || '-';
+            list[idx].km_masuk      = document.getElementById('km_masuk').value.trim()      || '-';
+            list[idx].suku_cadang   = sukuCadangItems;
+            list[idx].updated_at    = formattedDate;
 
-            const newItem = {
-                id            : newId,
-                name          : nameVal,
-                phone         : phoneVal,
-                address       : addressVal,
-                car_model     : document.getElementById('car_model').value.trim()     || '-',
-                license_plate : document.getElementById('license_plate').value.trim() || '-',
-                engine_code   : document.getElementById('engine_code').value.trim()   || '-',
-                km_masuk      : document.getElementById('km_masuk').value.trim()      || '-',
-                status        : 'Pengecekan',
-                created_by    : userName,
-                created_at    : formattedDate,
-                updated_at    : formattedDate,
-                suku_cadang   : sukuCadangItems,
-            };
-
-            list.push(newItem);
             localStorage.setItem('antrianList', JSON.stringify(list));
 
             isDirty = false;
 
-            await Swal.fire({ icon: 'success', title: 'Berhasil!', timer: 2000, showConfirmButton: false });
-            window.location.href = "{{ route('antrian-pengerjaan.index') }}";
+            await Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Data berhasil diperbarui.', timer: 2000, showConfirmButton: false });
+
+            // Kembali ke halaman detail setelah simpan
+            const detailUrl = "{{ route('antrian-pengerjaan.show', ':id') }}".replace(':id', id);
+            sessionStorage.setItem('currentAntrianId', id);
+            window.location.href = detailUrl;
         });
 
-        // ── Enter key — FIX: jangan trigger submit saat user sedang mengetik di input ──
+        // ── Enter key — jangan trigger submit saat mengetik di input ──────────────
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 const tag      = document.activeElement?.tagName?.toLowerCase();
                 const isTyping = ['input', 'textarea', 'select'].includes(tag);
                 if (isTyping) {
-                    e.preventDefault(); // Cegah default (submit form native), tapi jangan trigger submit
+                    e.preventDefault();
                     return;
                 }
                 e.preventDefault();
                 document.getElementById('submitBtnApi')?.click();
+            }
+        });
+
+        // ── Inisialisasi: load data yang mau diedit ───────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            const id = getAntrianId();
+
+            if (id === null) {
+                Swal.fire('Error', 'ID antrian tidak ditemukan!', 'error').then(() => {
+                    window.location.href = "{{ route('antrian-pengerjaan.index') }}";
+                });
+                return;
+            }
+
+            const list    = JSON.parse(localStorage.getItem('antrianList') || '[]');
+            const antrian = list.find(item => item.id === id);
+
+            if (!antrian) {
+                Swal.fire('Error', 'Data antrian tidak ditemukan!', 'error').then(() => {
+                    window.location.href = "{{ route('antrian-pengerjaan.index') }}";
+                });
+                return;
+            }
+
+            populateForm(antrian);
+
+            // Update backUrl ke halaman detail agar tombol Kembali tepat sasaran
+            const backBtn = document.getElementById('btnBackForm');
+
+            if (backBtn) {
+                const detailUrl = "{{ route('antrian-pengerjaan.show', ':id') }}".replace(':id', id);
+                backBtn.setAttribute('href', detailUrl);
+                
+                backBtn.addEventListener('click', (ev) => {
+                    ev.preventDefault();
+                    if (isDirty) {
+                        Swal.fire({
+                            title: 'Keluar tanpa menyimpan?',
+                            text: 'Perubahan yang kamu buat belum disimpan.',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Ya, Keluar',
+                            cancelButtonText: 'Batal',
+                            confirmButtonColor: '#1273EB',
+                        }).then(result => {
+                            if (result.isConfirmed) {
+                                isDirty = false;
+                                window.location.href = detailUrl;
+                            }
+                        });
+                    } else {
+                        window.location.href = detailUrl;
+                    }
+                });
             }
         });
     </script>

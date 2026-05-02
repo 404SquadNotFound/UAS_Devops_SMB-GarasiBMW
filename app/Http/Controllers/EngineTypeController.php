@@ -39,7 +39,6 @@ private function applyFilters(Request $request)
             ->paginate($request->limit ?? 10);
     }
 
-    // Fungsi buat ambil pilihan filter unik dari DB
     public function getFilterOptions()
     {
         $cylinders = EngineType::whereNotNull('cylinders')->distinct()->pluck('cylinders');
@@ -107,10 +106,10 @@ private function applyFilters(Request $request)
         return response()->json(['status' => 'success', 'message' => 'Tipe Mesin dihapus'], 200);
     }
 
-public function exportExcel(Request $request, ExportService $exportService)
+    public function exportExcel(Request $request, ExportService $exportService)
     {
         $headers = ['Nama Mesin', 'Silinder', 'Kapasitas Oli (L)', 'Tipe BBM', 'Kapasitas Mesin (cc)', 'Tanggal Dibuat'];
-        $query = $this->applyFilters($request); // Menggunakan filter yang sama dengan index
+        $query = $this->applyFilters($request);
         $fileName = 'data_mesin_' . date('Ymd_His') . '.xlsx';
 
         return $exportService->exportToExcel($fileName, $headers, $query, function ($item) {

@@ -215,6 +215,6 @@ Route::get('/antrian-pengerjaan/{id}', function ($id) {
     return view('pages.antrian_pengerjaan.detailManajemenAntrianPengerjaan');
 })->name('antrian-pengerjaan.show');
 Route::get('/antrian-pengerjaan/{id}/edit', function ($id) {
-    return view('pages.antrian_pengerjaan.manajemenAntrianPengerjaan');
+    return view('pages.antrian_pengerjaan.editManajemenAntrianPengerjaan');
 })->name('antrian-pengerjaan.edit');
 

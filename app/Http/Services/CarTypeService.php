@@ -19,12 +19,8 @@ class CarTypeService
 
     public function downloadExcel()
     {
-        // 6 header sesuai 6 kolom di mapRow
         $headers = ['No. Chasis', 'Nama', 'Seri', 'Kode Mesin', 'Tipe Mesin', 'Dibuat Oleh'];
-
-        // Tambah engineType di eager load
         $query = CarType::with(['engineType', 'creator']);
-
         $fileName = 'data_tipe_mobil_' . date('Ymd_His') . '.xlsx';
 
         return $this->excelService->exportToExcel(
@@ -46,7 +42,6 @@ class CarTypeService
 
     public function downloadPdf()
     {
-        // Tambah engineType di eager load
         $query = CarType::with(['engineType', 'creator']);
 
         $fileName = 'data_tipe_mobil_' . date('Ymd_His') . '.pdf';
