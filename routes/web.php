@@ -171,8 +171,6 @@ Route::get('/payroll/delete/{id}', function ($id) {
     return view('pages.payroll.payroll');
 })->name('payroll.delete');
 
-
-// Route Layanan Servis -> Penerimaan Servis
 // Route Layanan Servis -> Antrian Pengerjaan 
 Route::get('/manajemen-servis', function () {
     return view('pages.manajemen_servis_mobil.manajemenServisMobil');
@@ -191,7 +189,15 @@ Route::get('/manajemen-servis/delete/{id}', function ($id) {
 })->name('manajemen-servis.delete');
 
 // Route Layanan Servis -> Riwayat Transaksi
-// Masih belum ada
+Route::get('/riwayat-transaksi', function () {
+    return view('pages.riwayat_transaksi.riwayatTransaksi');
+})->name('riwayat-transaksi.index');
+Route::get('/riwayat-transaksi/detail/{id}', function ($id) {
+    return view('pages.riwayat_transaksi.detailRiwayatTransaksi');
+})->name('riwayat-transaksi.show');
+Route::get('/riwayat-transaksi/delete/{id}', function ($id) {
+    return view('pages.riwayat_transaksi.riwayatTransaksi');
+})->name('riwayat-transaksi.delete');
 
 // Route Manajemen Stok -> Data Suku Cadang
 Route::get('/suku-cadang', function () {
