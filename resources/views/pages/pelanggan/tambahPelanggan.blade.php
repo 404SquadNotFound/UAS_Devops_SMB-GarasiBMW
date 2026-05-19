@@ -109,17 +109,17 @@
                             <input type="text" x-model="tempCar.transmission" placeholder="A4Q" class="w-full px-5 py-3.5 bg-white border border-[#E5E9F2] rounded-xl outline-none text-[14px]">
                         </div>
                        <div>
-    <label class="block text-[13px] font-bold text-[#213F5C] mb-2">Tahun Mobil</label>
-    <input type="number" 
-           min="1928" 
-           max="2026"
-           x-model.number="tempCar.year" 
-           x-on:keydown="if(['-', 'e', 'E', '.'].includes($event.key)) $event.preventDefault()"
-           x-on:input="if ($el.value.length > 4) { $el.value = $el.value.slice(0, 4); tempCar.year = Number($el.value); }"
-           x-on:blur="if(tempCar.year && tempCar.year < 1928) tempCar.year = 1928"
-           placeholder="1945" 
-           class="w-full px-5 py-3.5 bg-white border border-[#E5E9F2] rounded-xl outline-none text-[14px]">
-</div>
+                            <label class="block text-[13px] font-bold text-[#213F5C] mb-2">Tahun Mobil</label>
+                            <input type="number" 
+                                min="1928" 
+                                max="2026"
+                                x-model.number="tempCar.year" 
+                                x-on:keydown="if(['-', 'e', 'E', '.'].includes($event.key)) $event.preventDefault()"
+                                x-on:input="if ($el.value.length > 4) { $el.value = $el.value.slice(0, 4); tempCar.year = Number($el.value); }"
+                                x-on:blur="if(tempCar.year && tempCar.year < 1928) tempCar.year = 1928"
+                                placeholder="1945" 
+                                class="w-full px-5 py-3.5 bg-white border border-[#E5E9F2] rounded-xl outline-none text-[14px]">
+                        </div>
                         <div>
                             <label class="block text-[13px] font-bold text-[#213F5C] mb-2">Nomor Polisi</label>
                             <input type="text" x-model="tempCar.license_plate" maxlength="9" placeholder="B 1040 JAW" class="w-full px-5 py-3.5 bg-white border border-[#E5E9F2] rounded-xl outline-none text-[14px]">
