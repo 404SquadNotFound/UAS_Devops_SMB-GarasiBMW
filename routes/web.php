@@ -229,4 +229,7 @@ Route::get('/antrian-pengerjaan/{id}', function ($id) {
 Route::get('/antrian-pengerjaan/{id}/edit', function ($id) {
     return view('pages.antrian_pengerjaan.editManajemenAntrianPengerjaan');
 })->name('antrian-pengerjaan.edit');
+Route::get('/antrian-pengerjaan/{id}/pembayaran', function ($id) {
+    return view('pages.antrian_pengerjaan.prosesPembayaran');
+})->name('antrian-pengerjaan.pembayaran');
 

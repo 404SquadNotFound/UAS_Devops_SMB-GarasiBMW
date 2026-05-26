@@ -187,6 +187,15 @@
         document.getElementById('detailKmMasuk').textContent     = t.km_masuk             || '-';
         document.getElementById('detailEngineCode').textContent  = vehicle.engine_code    || '-';
         document.getElementById('detailLicensePlate').textContent= vehicle.license_plate  || '-';
+        const cabangMap = {
+            '1': 'Pelajar Pejuang',
+            '2': 'Ahmad Yani',
+        };
+        const cabangId   = t.cabang_id ? String(t.cabang_id) : null;
+        const cabangNama = cabangId ? (cabangMap[cabangId] ?? 'Cabang #' + cabangId) : '-';
+        document.getElementById('detailCabang').textContent = cabangNama
+            ? '📍 ' + cabangNama
+            : '-';
 
         const createdByName = t.creator?.name || 'Unknown';
         document.getElementById('createdByName').textContent    = createdByName;
@@ -412,7 +421,13 @@
 
     // ── Proses pembayaran ─────────────────────────────────────────────────────
     function handleProsesPembayaran() {
-        Swal.fire({ icon: 'info', title: 'Proses Pembayaran', text: 'Fitur ini belum tersedia.' });
+        const id = currentTransactionId ?? getAntrianId();
+        if (!id) {
+            Swal.fire('Error', 'ID transaksi tidak ditemukan!', 'error');
+            return;
+        }
+        sessionStorage.setItem('currentAntrianId', String(id));
+        window.location.href = `/antrian-pengerjaan/${id}/pembayaran`;
     }
 
     // ── Inisialisasi halaman via API ──────────────────────────────────────────

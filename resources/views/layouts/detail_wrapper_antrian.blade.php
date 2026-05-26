@@ -127,6 +127,35 @@
                 </div>
             </div>
 
+            {{-- Section 2.5: Cabang Yang Digunakan --}}
+            <div class="bg-white rounded-[20px] border border-[#E5E9F2] shadow-sm overflow-hidden">
+                <div class="flex items-center gap-3 p-6 border-b border-gray-100">
+                    <svg class="w-5 h-5 text-[#1273EB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <h2 class="text-[16px] font-bold text-[#213F5C]">Cabang Yang Digunakan</h2>
+                </div>
+                <div class="p-8">
+                    <div class="flex items-center gap-3 bg-[#F0F7FF] border border-[#B1D3FF] rounded-xl p-4">
+                        <div class="w-9 h-9 rounded-xl bg-[#EAF2FF] flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5 text-[#1273EB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-widest mb-0.5">Cabang</p>
+                            <p id="detailCabang" class="text-[14px] font-bold text-[#1273EB]">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- Section 3: Penggunaan Suku Cadang --}}
             <div class="bg-white rounded-[20px] border border-[#E5E9F2] shadow-sm overflow-hidden">
                 <div class="flex items-center gap-3 p-6 border-b border-gray-100">
