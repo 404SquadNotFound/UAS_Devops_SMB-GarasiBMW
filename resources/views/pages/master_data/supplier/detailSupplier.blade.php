@@ -49,7 +49,7 @@
             document.getElementById('btnHapusData').onclick = async () => {
                 const confirm = await Swal.fire({
                     title: 'Hapus Supplier?',
-                    text: "Data supplier ini bakal ilang permanen!",
+                    text: "Data supplier ini bakal hilang permanen!",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#FF4D4D',

@@ -52,7 +52,7 @@
                 });
                 window.location.href = "{{ route('supplier.index') }}";
             } else {
-                Swal.fire('Gagal!', 'Cek lagi inputannya brok.', 'error');
+                Swal.fire('Gagal!', 'Cek lagi inputannya.', 'error');
             }
         };
     </script>

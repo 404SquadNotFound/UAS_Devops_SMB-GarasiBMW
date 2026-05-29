@@ -82,7 +82,7 @@
             };
 
             if (!data.name || !data.engine_cap || !data.oil_cap) {
-                Swal.fire('Oops!', 'Semua field wajib diisi brok!', 'warning');
+                Swal.fire('Oops!', 'Semua field wajib diisi!', 'warning');
                 return;
             }
 
@@ -106,7 +106,7 @@
                     await Swal.fire({ icon: 'success', title: 'Berhasil!', timer: 2000, showConfirmButton: false });
                     window.location.href = "{{ route('jenis-mesin.index') }}";
                 } else {
-                    Swal.fire({ icon: 'error', title: 'Gagal', text: result.message || 'Cek lagi inputan lu!' });
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: result.message || 'Cek lagi inputan!' });
                 }
             } catch (error) {
                 Swal.fire('Error', 'Koneksi server bermasalah.', 'error');

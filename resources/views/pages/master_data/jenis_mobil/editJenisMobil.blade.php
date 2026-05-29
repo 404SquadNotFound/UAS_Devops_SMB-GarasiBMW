@@ -147,7 +147,7 @@
                     const err = await res.json();
                     Swal.fire('Gagal!', err.message || 'Cek lagi inputannya.', 'error');
                 }
-            } catch (error) { Swal.fire('Error!', 'Koneksi API putus brok.', 'error'); }
+            } catch (error) { Swal.fire('Error!', 'Koneksi API putus.', 'error'); }
         };
 
         document.addEventListener('DOMContentLoaded', initEditPage);
