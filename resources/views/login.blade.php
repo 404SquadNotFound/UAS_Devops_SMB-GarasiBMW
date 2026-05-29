@@ -112,7 +112,7 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Akses Ditolak',
-                        text: result.message || 'Email atau password salah brok!'
+                        text: result.message || 'Email atau password salah!'
                     });
                     loginBtn.disabled = false;
                     loginBtn.innerText = 'Masuk';
@@ -122,8 +122,8 @@
                 console.error('Error:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Waduh!',
-                    text: 'Gagal terhubung ke server backend. Pastiin Laravel lu udah nyala (php artisan serve).'
+                    title: 'Error!',
+                    text: 'Gagal terhubung ke server backend. Pastikan Laravel sudah menyala.'
                 });
                 loginBtn.disabled = false;
                 loginBtn.innerText = 'Masuk';

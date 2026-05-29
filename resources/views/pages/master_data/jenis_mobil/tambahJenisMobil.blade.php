@@ -115,7 +115,7 @@
             const selectedEngines = Array.from(engineSelect.selectedOptions).map(opt => opt.value);
 
             if (selectedEngines.length === 0) {
-                Swal.fire('Eitss!', 'Pilih minimal satu mesin brok!', 'warning');
+                Swal.fire('Error', 'Pilih minimal satu mesin!', 'warning');
                 return;
             }
 
@@ -147,7 +147,7 @@
                     Swal.fire('Gagal!', err.message || 'Cek inputan lu brok.', 'error');
                 }
             } catch (error) {
-                Swal.fire('Error!', 'Backend lu pingsan kali brok.', 'error');
+                Swal.fire('Error!', 'Koneksi API terputus.', 'error');
             }
         };
 
