@@ -324,4 +324,59 @@ class CustomerServiceTest extends TestCase
         $response = $this->customerService->downloadPdf();
         $this->assertEquals(200, $response->getStatusCode());
     }
+
+    // Tugas PPL
+    public function test_format_and_validate_empty_array()
+    {
+        $service = app(CustomerService::class);
+        $input = [];
+
+        $result = $service->formatAndValidate($input);
+
+        $this->assertTrue($result['success']);
+        $this->assertIsArray($result['data']);
+        $this->assertEmpty($result['data']);
+    }
+
+    public function test_format_and_validate_invalid_regex_format()
+    {
+        $service = app(CustomerService::class);
+        $input = [
+            ['license_plate' => 'B@#$% JAW']
+        ];
+
+        $result = $service->formatAndValidate($input);
+
+        $this->assertFalse($result['success']);
+        $this->assertStringContainsString("tidak valid", $result['message']);
+        $this->assertStringContainsString("B@#$% JAW", $result['message']);
+    }
+
+    public function test_format_and_validate_unrecognized_prefix()
+    {
+        $service = app(CustomerService::class);
+        $input = [
+            ['license_plate' => 'ZZ 1234 AB']
+        ];
+
+        $result = $service->formatAndValidate($input);
+
+        $this->assertFalse($result['success']);
+        $this->assertStringContainsString("tidak dikenali di Indonesia", $result['message']);
+        $this->assertStringContainsString("ZZ", $result['message']);
+    }
+
+    public function test_format_and_validate_success_happy_path()
+    {
+        $service = app(CustomerService::class);
+        $input = [
+            ['license_plate' => '  B 1040 JAW ']
+        ];
+
+        $result = $service->formatAndValidate($input);
+
+        $this->assertTrue($result['success']);
+        $this->assertNotEmpty($result['data']);
+        $this->assertEquals('B 1040 JAW', $result['data'][0]['license_plate']);
+    }
 }
