@@ -14,6 +14,24 @@ class ItemCategoryTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function makeEmployee(): void
+    {
+        \DB::table('employees')->insert([
+            'employees_id' => 1,
+            'name'         => 'Test Admin',
+            'join_date'    => '2024-01-01',
+            'birth_date'   => '1990-01-01',
+            'address'      => 'Test',
+            'email'        => 'test@test.com',
+            'password'     => bcrypt('password'),
+            'role'         => 'admin',
+            'base_salary'  => 5000000,
+            'status'       => 1,
+            'created_at'   => now(),
+            'updated_at'   => now(),
+        ]);
+    }
+
     private function makeCategory(string $name, ?string $desc = null): ItemCategory
     {
         return ItemCategory::create([
@@ -36,13 +54,14 @@ class ItemCategoryTest extends TestCase
     // TC-KTR-04 - Statement Coverage - Jalur Sukses
     public function test_store_sukses_data_valid_mencapai_blok_create(): void
     {
+        $this->makeEmployee();
+
         $request = $this->makeRequest('POST', '/api/item-categories', [
             'name'         => 'Rem',
             'descriptions' => 'Sparepart pengereman',
         ]);
 
-        $controller = new ItemCategoryController();
-        $response = $controller->store($request);
+        $response = (new ItemCategoryController())->store($request);
 
         $this->assertEquals(201, $response->getStatusCode());
         $data = json_decode($response->getContent(), true);
@@ -54,6 +73,8 @@ class ItemCategoryTest extends TestCase
     // TC-KTR-05 - Statement Coverage - Jalur Gagal Validasi
     public function test_store_gagal_name_null_masuk_blok_validasi_error(): void
     {
+        $this->makeEmployee();
+
         $request = $this->makeRequest('POST', '/api/item-categories', [
             'name' => null,
         ]);
@@ -65,6 +86,7 @@ class ItemCategoryTest extends TestCase
     // TC-KTR-NEW-01 - Branch Coverage - Name Duplikat
     public function test_store_gagal_name_duplikat_branch_unique(): void
     {
+        $this->makeEmployee();
         $this->makeCategory('Aksesori Eksterior');
 
         $request = $this->makeRequest('POST', '/api/item-categories', [
@@ -78,17 +100,22 @@ class ItemCategoryTest extends TestCase
     // TC-KTR-NEW-02 - BVA - Name 255 Karakter Valid
     public function test_store_sukses_name_tepat_255_karakter(): void
     {
+        $this->makeEmployee();
+
         $request = $this->makeRequest('POST', '/api/item-categories', [
             'name' => str_repeat('A', 255),
         ]);
 
         $response = (new ItemCategoryController())->store($request);
         $this->assertEquals(201, $response->getStatusCode());
+        $this->assertDatabaseCount('item_categories', 1);
     }
 
     // TC-KTR-NEW-03 - BVA - Name 256 Karakter Invalid
     public function test_store_gagal_name_256_karakter_branch_max_exceeded(): void
     {
+        $this->makeEmployee();
+
         $request = $this->makeRequest('POST', '/api/item-categories', [
             'name' => str_repeat('A', 256),
         ]);
@@ -100,6 +127,8 @@ class ItemCategoryTest extends TestCase
     // TC-KTR-NEW-04 - Branch Coverage - Descriptions Nullable
     public function test_store_sukses_tanpa_descriptions_branch_nullable(): void
     {
+        $this->makeEmployee();
+
         $request = $this->makeRequest('POST', '/api/item-categories', [
             'name'         => 'Mesin Turbo',
             'descriptions' => null,
@@ -113,6 +142,7 @@ class ItemCategoryTest extends TestCase
     // TC-KTR-NEW-05 - Branch Coverage - Update Nama Sendiri
     public function test_update_sukses_name_milik_record_sendiri(): void
     {
+        $this->makeEmployee();
         $category = $this->makeCategory('Transmisi', 'Manual/Auto');
 
         $request = $this->makeRequest('PUT', "/api/item-categories/{$category->category_id}", [
@@ -124,6 +154,7 @@ class ItemCategoryTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
         $data = json_decode($response->getContent(), true);
         $this->assertEquals('success', $data['status']);
+        $this->assertEquals('Kategori berhasil diupdate!', $data['message']);
     }
 
     // TC-KTR-NEW-06 - Branch Coverage - Show ID Valid
