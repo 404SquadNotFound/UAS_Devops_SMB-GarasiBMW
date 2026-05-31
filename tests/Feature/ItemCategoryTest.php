@@ -1,112 +1,213 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Tests\Feature;
 
+use App\Http\Controllers\ItemCategoryController;
 use App\Models\ItemCategory;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
-use App\Http\Services\ExportService;
-use App\Http\Services\PdfExportService;
+use Tests\TestCase;
+use Mockery;
 
-class ItemCategoryController extends Controller
+class ItemCategoryTest extends TestCase
 {
-    public function index(Request $request)
+    use RefreshDatabase;
+
+    private function makeCategory(string $name, ?string $desc = null): ItemCategory
     {
-        $query = ItemCategory::query();
-
-        if ($request->has('search')) {
-            $search = $request->search;
-            $query->where('name', 'LIKE', "%{$search}%");
-        }
-
-        $categories = $query->orderBy('created_at', 'desc')->paginate($request->limit ?? 10);
-
-        return response()->json($categories, 200);
-    }
-
-    public function show($id)
-    {
-        $category = ItemCategory::findOrFail($id);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data kategori berhasil ditarik',
-            'data' => $category
-        ], 200);
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:item_categories,name',
-            'descriptions' => 'nullable|string',
+        return ItemCategory::create([
+            'name'         => $name,
+            'descriptions' => $desc,
+            'employee_id'  => null,
+            'created_by'   => null,
         ]);
-
-        $validated['employee_id'] = $request->user()->employees_id ?? 1;
-        $validated['created_by'] = $request->user()->employees_id ?? 1;
-
-        $category = ItemCategory::create($validated);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Kategori baru berhasil ditambahkan!',
-            'data' => $category
-        ], 201);
     }
 
-    public function update(Request $request, $id)
+    // TC-KTR-04 - Statement Coverage - Jalur Sukses
+    public function test_store_sukses_data_valid_mencapai_blok_create(): void
     {
-        $category = ItemCategory::findOrFail($id);
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:item_categories,name,' . $id . ',category_id',
-            'descriptions' => 'nullable|string',
+        $controller = new ItemCategoryController();
+        $request = Request::create('/api/item-categories', 'POST', [
+            'name'         => 'Rem',
+            'descriptions' => 'Sparepart pengereman',
         ]);
+        $user = new User(['employees_id' => null]);
+        $request->setUserResolver(fn() => $user);
 
-        $validated['edited_by'] = $request->user()->employees_id ?? 1;
+        $response = $controller->store($request);
 
-        $category->update($validated);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Kategori berhasil diupdate!',
-            'data' => $category
-        ], 200);
+        $this->assertEquals(201, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertEquals('success', $data['status']);
+        $this->assertEquals('Kategori baru berhasil ditambahkan!', $data['message']);
+        $this->assertDatabaseHas('item_categories', ['name' => 'Rem']);
     }
 
-
-    public function exportExcel(ExportService $exportService)
+    // TC-KTR-05 - Statement Coverage - Jalur Gagal Validasi
+    public function test_store_gagal_name_null_masuk_blok_validasi_error(): void
     {
-        $headers = ['ID', 'Nama Kategori', 'Deskripsi', 'Jumlah Suku Cadang', 'Dibuat Oleh'];
-        $query = ItemCategory::withCount('spareparts')->with('creator');
-        $fileName = 'data_kategori_barang_' . date('Ymd') . '.xlsx';
+        $controller = new ItemCategoryController();
+        $request = Request::create('/api/item-categories', 'POST', [
+            'name'         => null,
+            'descriptions' => null,
+        ]);
+        $user = new User(['employees_id' => null]);
+        $request->setUserResolver(fn() => $user);
 
-        return $exportService->exportToExcel($fileName, $headers, $query, function ($item) {
-            return [
-                $item->category_id,
-                $item->name,
-                $item->descriptions ?? '-',
-                $item->spareparts_count ?? 0,
-                $item->creator ? $item->creator->name : '-',
-            ];
-        });
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $controller->store($request);
     }
 
-    public function exportPdf(PdfExportService $pdfExportService)
+    // TC-KTR-NEW-01 - Branch Coverage - Name Duplikat
+    public function test_store_gagal_name_duplikat_branch_unique(): void
     {
-        $query = ItemCategory::withCount('spareparts')->with('creator');
-        $fileName = 'laporan_kategori_barang_' . date('Ymd') . '.pdf';
+        $this->makeCategory('Aksesori Eksterior', 'Semua item body part');
 
-        return $pdfExportService->export(
-            $fileName,
-            $query,
-            fn($item) => [
-                'ID'             => $item->category_id,
-                'Nama Kategori'  => $item->name,
-                'Deskripsi'      => $item->descriptions ?? '-',
-                'Jumlah Suku Cadang' => $item->spareparts_count ?? 0,
-                'Dibuat Oleh'    => $item->creator ? $item->creator->name : '-',
-            ],
-            ['title' => 'Laporan Master Data Kategori Barang']
-        );
+        $controller = new ItemCategoryController();
+        $request = Request::create('/api/item-categories', 'POST', [
+            'name'         => 'Aksesori Eksterior',
+            'descriptions' => 'Coba duplikat',
+        ]);
+        $user = new User(['employees_id' => null]);
+        $request->setUserResolver(fn() => $user);
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $controller->store($request);
+
+        $this->assertDatabaseCount('item_categories', 1);
+    }
+
+    // TC-KTR-NEW-02 - BVA - Name 255 Karakter (Valid)
+    public function test_store_sukses_name_tepat_255_karakter(): void
+    {
+        $controller = new ItemCategoryController();
+        $request = Request::create('/api/item-categories', 'POST', [
+            'name'         => str_repeat('A', 255),
+            'descriptions' => 'Tes BVA batas valid',
+        ]);
+        $user = new User(['employees_id' => null]);
+        $request->setUserResolver(fn() => $user);
+
+        $response = $controller->store($request);
+
+        $this->assertEquals(201, $response->getStatusCode());
+        $this->assertDatabaseCount('item_categories', 1);
+    }
+
+    // TC-KTR-NEW-03 - BVA - Name 256 Karakter (Invalid)
+    public function test_store_gagal_name_256_karakter_branch_max_exceeded(): void
+    {
+        $controller = new ItemCategoryController();
+        $request = Request::create('/api/item-categories', 'POST', [
+            'name'         => str_repeat('A', 256),
+            'descriptions' => 'Tes BVA batas invalid',
+        ]);
+        $user = new User(['employees_id' => null]);
+        $request->setUserResolver(fn() => $user);
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $controller->store($request);
+    }
+
+    // TC-KTR-NEW-04 - Branch Coverage - Descriptions Nullable
+    public function test_store_sukses_tanpa_descriptions_branch_nullable(): void
+    {
+        $controller = new ItemCategoryController();
+        $request = Request::create('/api/item-categories', 'POST', [
+            'name'         => 'Mesin Turbo',
+            'descriptions' => null,
+        ]);
+        $user = new User(['employees_id' => null]);
+        $request->setUserResolver(fn() => $user);
+
+        $response = $controller->store($request);
+
+        $this->assertEquals(201, $response->getStatusCode());
+        $this->assertDatabaseHas('item_categories', ['name' => 'Mesin Turbo', 'descriptions' => null]);
+    }
+
+    // TC-KTR-NEW-05 - Branch Coverage - Update Nama Sendiri
+    public function test_update_sukses_name_milik_record_sendiri(): void
+    {
+        $category = $this->makeCategory('Transmisi', 'Manual/Auto');
+
+        $controller = new ItemCategoryController();
+        $request = Request::create("/api/item-categories/{$category->category_id}", 'PUT', [
+            'name'         => 'Transmisi',
+            'descriptions' => 'Deskripsi diperbarui',
+        ]);
+        $user = new User(['employees_id' => null]);
+        $request->setUserResolver(fn() => $user);
+
+        $response = $controller->update($request, $category->category_id);
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertEquals('success', $data['status']);
+        $this->assertEquals('Kategori berhasil diupdate!', $data['message']);
+    }
+
+    // TC-KTR-NEW-06 - Statement Coverage - Destroy
+    public function test_destroy_sukses_eksekusi_mencapai_blok_delete(): void
+    {
+        $category = $this->makeCategory('Oli', 'Pelumas mesin');
+
+        $controller = new ItemCategoryController();
+        $response   = $controller->destroy($category->category_id);
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertEquals('success', $data['status']);
+        $this->assertEquals('Kategori berhasil dihapus!', $data['message']);
+        $this->assertDatabaseMissing('item_categories', ['category_id' => $category->category_id]);
+    }
+
+    // TC-KTR-NEW-07 - Branch Coverage - Show ID Tidak Ada
+    public function test_show_gagal_id_tidak_ditemukan_branch_findorfail(): void
+    {
+        $controller = new ItemCategoryController();
+
+        $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        $controller->show(99999);
+    }
+
+    // TC-KTR-NEW-08 - Branch Coverage - Index Dengan Search
+    public function test_index_dengan_search_branch_pencarian_aktif(): void
+    {
+        $this->makeCategory('Filter Oli', 'Filter mesin');
+        $this->makeCategory('Ban Luar', 'Ban kendaraan');
+
+        $controller = new ItemCategoryController();
+        $request    = Request::create('/api/item-categories', 'GET', ['search' => 'Filter']);
+
+        $response = $controller->index($request);
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertCount(1, $data['data']);
+        $this->assertEquals('Filter Oli', $data['data'][0]['name']);
+    }
+
+    // TC-KTR-NEW-09 - Branch Coverage - Index Tanpa Search
+    public function test_index_tanpa_search_branch_pencarian_tidak_aktif(): void
+    {
+        $this->makeCategory('Aki', 'Baterai');
+        $this->makeCategory('Kopling', 'Kopling manual');
+
+        $controller = new ItemCategoryController();
+        $request    = Request::create('/api/item-categories', 'GET');
+
+        $response = $controller->index($request);
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertEquals(2, $data['total']);
+    }
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
     }
 }
