@@ -27,8 +27,8 @@
             <div class="col-span-9 space-y-6">
 
                 {{-- =========================================================
-             BOX 1 : Informasi Pemilik Kendaraan
-            ========================================================= --}}
+                BOX 1 : Informasi Pemilik Kendaraan
+                ========================================================= --}}
                 <div class="bg-white rounded-[20px] border border-[#E5E9F2] shadow-sm">
                     <div class="flex items-center gap-3 p-6 border-b border-gray-100 bg-white">
                         <div class="w-8 h-8 bg-[#F1F5F9] rounded-lg flex items-center justify-center text-[#1273EB]">
@@ -88,8 +88,8 @@
                 </div>
 
                 {{-- =========================================================
-             BOX 2 : Informasi Mobil Pelanggan
-            ========================================================= --}}
+                BOX 2 : Informasi Mobil Pelanggan
+                ========================================================= --}}
                 <div class="bg-white rounded-[20px] border border-[#E5E9F2] shadow-sm">
                     <div class="flex items-center gap-3 p-6 border-b border-gray-100 bg-white">
                         <div class="w-8 h-8 bg-[#F1F5F9] rounded-lg flex items-center justify-center text-[#213F5C]">
@@ -157,8 +157,7 @@
                         {{-- KM Masuk --}}
                         <div>
                             <label class="block text-[14px] font-bold text-[#213F5C] mb-2">KM Masuk</label>
-                            <input type="number" id="km_masuk" x-model="kmMasuk" placeholder="Contoh: 15000"
-                                min="0"
+                            <input type="number" id="km_masuk" x-model="kmMasuk" placeholder="Contoh: 15000" min="0"
                                 @keydown="if(['-','e','E','+'].includes($event.key)) $event.preventDefault()"
                                 class="w-full px-5 py-3.5 bg-[#F9FBFF] border border-[#E5E9F2] rounded-xl outline-none focus:border-[#1273EB] focus:ring-2 focus:ring-[#1273EB]/10 transition-all text-[14px] text-[#213F5C] placeholder-gray-300">
                         </div>
@@ -166,8 +165,8 @@
                 </div>
 
                 {{-- =========================================================
-             BOX 3 : Cabang Yang Digunakan
-            ========================================================= --}}
+                BOX 3 : Cabang Yang Digunakan
+                ========================================================= --}}
                 <div class="bg-white rounded-[20px] border border-[#E5E9F2] shadow-sm">
                     <div class="flex items-center gap-3 p-6 border-b border-gray-100 bg-white">
                         <div class="w-8 h-8 bg-[#F1F5F9] rounded-lg flex items-center justify-center text-[#213F5C]">
@@ -187,14 +186,13 @@
                                     class="text-red-500">*</span></label>
                             <div class="relative" @click.stop>
                                 <input type="text" readonly :value="selectedCabang ? selectedCabang.label : ''"
-                                    @click="showCabangDropdown = !showCabangDropdown"
-                                    placeholder="Pilih cabang bengkel..."
+                                    @click="showCabangDropdown = !showCabangDropdown" placeholder="Pilih cabang bengkel..."
                                     class="w-full px-5 py-3.5 bg-[#F9FBFF] border border-[#E5E9F2] rounded-xl outline-none text-[14px] font-semibold text-[#213F5C] cursor-pointer focus:border-[#1273EB]"
                                     :class="showCabangDropdown ? 'border-[#1273EB] ring-2 ring-[#1273EB]/10' : ''">
                                 <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                                     <svg class="w-4 h-4 transition-transform duration-200"
-                                        :class="showCabangDropdown ? 'rotate-180' : ''" fill="none"
-                                        stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                        :class="showCabangDropdown ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                        stroke-width="2.5" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                                     </svg>
@@ -223,8 +221,8 @@
                 </div>
 
                 {{-- =========================================================
-             BOX 4 : Penggunaan Suku Cadang
-            ========================================================= --}}
+                BOX 4 : Penggunaan Suku Cadang
+                ========================================================= --}}
                 <div class="bg-white rounded-[20px] border border-[#E5E9F2] shadow-sm">
                     <div class="flex items-center gap-3 p-6 border-b border-gray-100">
                         <div class="w-8 h-8 bg-[#F1F5F9] rounded-lg flex items-center justify-center text-[#213F5C]">
@@ -249,8 +247,7 @@
                                     <p class="text-[11px] text-gray-400 mt-0.5" x-text="item.deskripsi || '-'"></p>
                                 </div>
                                 <div class="flex items-center gap-3">
-                                    <span class="text-[12px] font-bold text-[#213F5C]"
-                                        x-text="item.jumlah + ' pcs'"></span>
+                                    <span class="text-[12px] font-bold text-[#213F5C]" x-text="item.jumlah + ' pcs'"></span>
                                     <span class="text-[12px] text-gray-400" x-text="item.harga"></span>
                                     <button type="button" @click="hapusSukuCadang(item.id)"
                                         class="w-8 h-8 flex items-center justify-center rounded-lg bg-[#FFF5F5] border border-[#FFE0E0] text-[#FF4D4D] hover:bg-[#FFEBEB] transition-all">
@@ -267,23 +264,21 @@
                         {{-- Tombol Tambah --}}
                         <button type="button" x-show="!showFormSukuCadang" @click="openSukuCadangForm()"
                             class="w-full py-4 bg-[#1273EB] text-white rounded-xl font-bold text-[15px] flex items-center justify-center gap-2 shadow-lg shadow-blue-100 hover:bg-[#0E59B8] transition-all">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3"
-                                viewBox="0 0 24 24">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
                                 <path d="M12 4.5v15m7.5-7.5h-15"></path>
                             </svg>
                             Tambah Suku Cadang
                         </button>
 
                         {{-- =====================================================
-                     FORM SUKU CADANG — 3 step bertahap
-                    ===================================================== --}}
+                        FORM SUKU CADANG — 3 step bertahap
+                        ===================================================== --}}
                         <div x-show="showFormSukuCadang" x-cloak
                             class="bg-[#EEF5FF] border-2 border-[#B8D4FF] rounded-2xl p-6 space-y-5">
 
                             {{-- Header form --}}
                             <div class="flex items-center gap-2">
-                                <svg class="w-5 h-5 text-[#4A7CC7]" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 text-[#4A7CC7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -300,9 +295,8 @@
                                     Cari Nama Barang
                                 </label>
                                 <div class="relative" @click.stop>
-                                    <input type="text" x-model="barangSearch" @input="onBarangInput"
-                                        @focus="onBarangFocus" placeholder="Ketik nama atau kode barang..."
-                                        autocomplete="off"
+                                    <input type="text" x-model="barangSearch" @input="onBarangInput" @focus="onBarangFocus"
+                                        placeholder="Ketik nama atau kode barang..." autocomplete="off"
                                         class="w-full px-5 py-3 bg-white border border-white rounded-2xl outline-none text-[13px] text-[#213F5C] placeholder-gray-300 pr-9 shadow-sm transition-all"
                                         :class="showBarangDropdown ? 'border-[#1273EB] ring-2 ring-[#1273EB]/20' : ''">
                                     <span x-show="selectedBarang" @click.stop="clearBarang()"
@@ -360,28 +354,28 @@
                                 </div>
 
                                 <div x-show="!loadingBatch" class="space-y-2">
-                                    <template x-for="batch in batchList" :key="batch.id">
-                                        <div @click="selectBatch(batch)"
-                                            class="flex items-center gap-3 px-5 py-3.5 bg-white rounded-2xl cursor-pointer shadow-sm transition-all border-2"
-                                            :class="selectedBatch?.id === batch.id ?
-                                                'border-[#1273EB] bg-[#EAF2FF]' :
-                                                'border-transparent hover:border-[#B8D4FF]'">
-                                            {{-- Custom radio --}}
-                                            <div class="w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all"
-                                                :class="selectedBatch?.id === batch.id ? 'border-[#1273EB] bg-[#1273EB]' :
-                                                    'border-gray-300 bg-white'">
-                                                <div x-show="selectedBatch?.id === batch.id"
-                                                    class="w-2 h-2 rounded-full bg-white"></div>
+                                        <template x-for="(batch, index) in batchList" :key="batch.id || index">
+                                            <div @click="selectBatch(batch)"
+                                                class="flex items-center gap-3 px-5 py-3.5 bg-white rounded-2xl cursor-pointer shadow-sm transition-all border-2"
+                                                :class="selectedBatch?.id === batch.id ?
+                                                        'border-[#1273EB] bg-[#EAF2FF]' :
+                                                        'border-transparent hover:border-[#B8D4FF]'">
+                                                {{-- Custom radio --}}
+                                                <div class="w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all"
+                                                    :class="selectedBatch?.id === batch.id ? 'border-[#1273EB] bg-[#1273EB]' :
+                                                            'border-gray-300 bg-white'">
+                                                    <div x-show="selectedBatch?.id === batch.id"
+                                                        class="w-2 h-2 rounded-full bg-white"></div>
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-[13px] font-bold text-[#213F5C]"
+                                                        x-text="batch.tanggal_masuk"></p>
+                                                    <p class="text-[11px] text-gray-400 mt-0.5"
+                                                        x-text="'HPP: ' + batch.harga_beli + '  ·  Jual: ' + batch.harga_jual + '  ·  Sisa: ' + batch.sisa + ' pcs'">
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-[13px] font-bold text-[#213F5C]"
-                                                    x-text="batch.tanggal_masuk"></p>
-                                                <p class="text-[11px] text-gray-400 mt-0.5"
-                                                    x-text="'HPP: ' + batch.harga_beli + '  ·  Jual: ' + batch.harga_jual + '  ·  Sisa: ' + batch.sisa + ' pcs'">
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </template>
+                                        </template>
                                     <div x-show="batchList.length === 0"
                                         class="px-5 py-4 bg-white rounded-2xl text-[13px] text-gray-400 text-center shadow-sm">
                                         Tidak ada stok tersedia untuk barang ini
@@ -460,8 +454,7 @@
 
                     <a href="{{ route('antrian-pengerjaan.index') }}"
                         class="w-full flex items-center justify-center gap-2 py-4 bg-white text-gray-500 border border-gray-200 rounded-xl font-bold text-[15px] hover:bg-gray-50 transition-all">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5"
-                            viewBox="0 0 24 24">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                         Batal
@@ -527,13 +520,13 @@
 
                 // Cabang
                 cabangOptions: [{
-                        value: '1',
-                        label: 'Pelajar Pejuang'
-                    },
-                    {
-                        value: '2',
-                        label: 'Ahmad Yani'
-                    },
+                    value: '1',
+                    label: 'Pelajar Pejuang'
+                },
+                {
+                    value: '2',
+                    label: 'Ahmad Yani'
+                },
                 ],
                 showCabangDropdown: false,
                 selectedCabang: null,
@@ -746,7 +739,7 @@
                         console.log('STOCKS response:', JSON.stringify(result, null, 2)); // <-- lihat ini
                         const raw = result.data ?? result.stocks ?? result ?? [];
                         this.batchList = (Array.isArray(raw) ? raw : []).map(b => ({
-                            id: b.id,
+                            id: b.id ?? b.id_stok ?? b.stock_id ?? `batch-${index}`,
                             tanggal_masuk: b.tanggal_masuk ?? b.date ?? b.created_at ?? '-',
                             harga_beli: b.harga_beli ?? b.hpp ?? b.purchase_price ?? b.cost_price ?? '-',
                             harga_jual: b.harga_jual ?? b.harga ?? b.selling_price ?? b.price ?? '-',
