@@ -79,8 +79,8 @@
 
                 // Pop-up Konfirmasi
                 const result = await Swal.fire({
-                    title: 'Yakin mau hapus brok?',
-                    text: "Data yang udah dihapus gak bakal balik lagi lho!",
+                    title: 'Apakah kamu yakin ingin menghapus data ini?',
+                    text: "Data yang sudah terhapus tidak akan kembali!",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#FF4D4D',
@@ -115,7 +115,7 @@
                             });
                             window.location.href = "{{ route('jenis-mobil.index') }}";
                         } else {
-                            Swal.fire('Gagal!', 'Waduh, datanya gagal diapus brok.', 'error');
+                            Swal.fire('Gagal!', 'Data belum terhapus', 'error');
                         }
                     } catch (e) {
                         console.error(e);

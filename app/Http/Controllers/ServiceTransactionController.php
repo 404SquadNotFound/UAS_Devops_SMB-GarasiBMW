@@ -75,8 +75,8 @@ class ServiceTransactionController extends Controller
             'address'       => 'nullable|string',
             'license_plate' => 'nullable|string',
             'car_model'     => 'nullable|string',
-            'engine_code'   => 'nullable|string',
-            'km_masuk'      => 'nullable|string',
+            'engine_code'   => 'nullable|str    ing',
+            'km_masuk'      => 'nullable|numeric',
             'items'         => 'nullable|array',
             'items.*.sparepart_id' => 'nullable|exists:spareparts,sparepart_id',
             'items.*.quantity'     => 'nullable|integer|min:1',
@@ -191,7 +191,7 @@ class ServiceTransactionController extends Controller
             'address'       => 'nullable|string',
             'car_model'     => 'nullable|string',
             'engine_code'   => 'nullable|string',
-            'km_masuk'      => 'nullable|string',
+            'km_masuk'      => 'nullable|numeric',
             'license_plate' => 'nullable|string',
             'items'         => 'nullable|array',
             'items.*.sparepart_id' => 'nullable|exists:spareparts,sparepart_id',
@@ -335,5 +335,28 @@ class ServiceTransactionController extends Controller
             'status'  => 'success',
             'message' => 'Data antrian berhasil dihapus!',
         ], 200);
+    }
+
+    /**
+     * Return status counts for dashboard stat cards.
+     * GET /api/transactions/status-summary
+     */
+    public function statusSummary()
+    {
+        $counts = ServiceTransaction::select('status_service', DB::raw('count(*) as total'))
+            ->groupBy('status_service')
+            ->pluck('total', 'status_service');
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => [
+                'menunggu'    => $counts['menunggu']    ?? 0,
+                'pengecekan'  => $counts['pengecekan']  ?? 0,
+                'dikerjakan'  => $counts['dikerjakan']  ?? 0,
+                'selesai'     => $counts['selesai']     ?? 0,
+                'dibatalkan'  => $counts['dibatalkan']  ?? 0,
+                'total'       => ServiceTransaction::count(),
+            ],
+        ]);
     }
 }

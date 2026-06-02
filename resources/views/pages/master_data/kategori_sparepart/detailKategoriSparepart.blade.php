@@ -78,7 +78,7 @@
             document.getElementById('btnHapusData').onclick = async () => {
                 const confirmAction = await Swal.fire({
                     title: 'Hapus Kategori?',
-                    text: "Kategori ini mungkin dipake di data stok lho!",
+                    text: "Kategori ini kemungkinan digunkan di data lain!",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#FF4D4D',

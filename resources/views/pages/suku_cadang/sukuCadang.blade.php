@@ -32,6 +32,19 @@
         'exportExcelUrl'=> 'javascript:exportSukuCadang()',
         'exportPdfUrl'  => 'javascript:exportSukuCadangPdf()'
     ])
+    {{-- Script: hanya finance & kepala_admin yang boleh lihat tombol tambah suku cadang --}}
+    <script>
+        (function() {
+            const role = (localStorage.getItem('user_role') || '').toLowerCase();
+            const canAdd = ['finance', 'kepala_admin'];
+            if (!canAdd.includes(role)) {
+                document.addEventListener('DOMContentLoaded', function() {
+                    const addBtn = document.querySelector('a[href="{{ route('suku-cadang.create') }}"]');
+                    if (addBtn) addBtn.style.display = 'none';
+                });
+            }
+        })();
+    </script>
 
     @include('layouts.table_wrapper')
 
@@ -81,7 +94,7 @@
         }
 
         // 1. Fetch Data Utama (server-side search + filter + pagination)
-        async function fetchSpareparts(search = '', category = '', supplierId = '') {
+        async function fetchSpareparts(search = '', category = '', supplierId = '', page = 1) {
             const tbody = document.getElementById('sparepartTableBody');
             const fromEl = document.getElementById('paginationFrom');
             const toEl = document.getElementById('paginationTo');
@@ -94,7 +107,8 @@
                     limit: 10,
                     search: search,
                     category: category,
-                    supplier_id: supplierId
+                    supplier_id: supplierId,
+                    page: page
                 });
                 
                 const url = `/api/spareparts?${queryParams.toString()}`;
@@ -158,6 +172,7 @@
                     if (fromEl) fromEl.innerText = result.from || 0;
                     if (toEl) toEl.innerText = result.to || 0;
                     if (totalEl) totalEl.innerText = result.total || 0;
+                    renderPaginationControls(result, (p) => fetchSpareparts(search, category, supplierId, p));
                 }
             } catch (e) {
                 console.error(e);

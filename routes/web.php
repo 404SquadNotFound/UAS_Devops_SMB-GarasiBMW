@@ -198,6 +198,9 @@ Route::get('/riwayat-transaksi/detail/{id}', function ($id) {
 Route::get('/riwayat-transaksi/delete/{id}', function ($id) {
     return view('pages.riwayat_transaksi.riwayatTransaksi');
 })->name('riwayat-transaksi.delete');
+Route::get('/riwayat-transaksi/{id}/nota', function ($id) {
+    return view('pages.riwayat_transaksi.notaPembayaran');
+})->name('riwayat-transaksi.nota');
 
 // Route Manajemen Stok -> Data Suku Cadang
 Route::get('/suku-cadang', function () {
@@ -229,4 +232,7 @@ Route::get('/antrian-pengerjaan/{id}', function ($id) {
 Route::get('/antrian-pengerjaan/{id}/edit', function ($id) {
     return view('pages.antrian_pengerjaan.editManajemenAntrianPengerjaan');
 })->name('antrian-pengerjaan.edit');
+Route::get('/antrian-pengerjaan/{id}/pembayaran', function ($id) {
+    return view('pages.antrian_pengerjaan.prosesPembayaran');
+})->name('antrian-pengerjaan.pembayaran');
 

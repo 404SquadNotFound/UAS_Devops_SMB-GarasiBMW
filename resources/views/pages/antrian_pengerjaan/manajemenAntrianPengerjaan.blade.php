@@ -27,6 +27,18 @@
         'addUrl'      => route('antrian-pengerjaan.create'),
         'btnText'     => 'Tambah Antrian',
     ])
+    {{-- Script: sembunyikan tombol tambah untuk role CEO --}}
+    <script>
+        (function() {
+            const role = (localStorage.getItem('user_role') || '').toLowerCase();
+            if (role === 'ceo') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    const addBtn = document.querySelector('a[href="{{ route('antrian-pengerjaan.create') }}"]');
+                    if (addBtn) addBtn.style.display = 'none';
+                });
+            }
+        })();
+    </script>
     @include('layouts.table_wrapper')
 
     <script>
@@ -41,14 +53,14 @@
             'selesai'     : { bg: 'bg-[#EDFBF3]', text: 'text-[#16A34A]', border: 'border-[#A7F3D0]', label: 'Selesai'      },
         };
 
-        async function fetchAntrian(search = '') {
+        async function fetchAntrian(search = '', page = 1) {
             const tbody = document.getElementById('antrianTableBody');
             const fromEl  = document.getElementById('paginationFrom');
             const toEl    = document.getElementById('paginationTo');
             const totalEl = document.getElementById('paginationTotal');
 
             try {
-                const params = new URLSearchParams({ limit: 10, search });
+                const params = new URLSearchParams({ limit: 10, search, page });
                 const res = await fetch(`/api/transactions?${params}`, {
                     headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
                 });
@@ -75,9 +87,7 @@
                                 </div>
                             </td>
                         </tr>`;
-                    if (fromEl) fromEl.innerText = 0;
-                    if (toEl)   toEl.innerText   = 0;
-                    if (totalEl) totalEl.innerText = 0;
+                    renderPaginationControls({ from: 0, to: 0, total: 0, current_page: 1, last_page: 1 }, () => {});
                     return;
                 }
 
@@ -113,9 +123,7 @@
                     tbody.appendChild(tr);
                 });
 
-                if (fromEl)  fromEl.innerText  = result.from  ?? 0;
-                if (toEl)    toEl.innerText    = result.to    ?? 0;
-                if (totalEl) totalEl.innerText = result.total ?? 0;
+                renderPaginationControls(result, (p) => fetchAntrian(search, p));
 
             } catch (e) {
                 console.error(e);
@@ -142,7 +150,7 @@
             if (searchInput) {
                 searchInput.addEventListener('input', () => {
                     clearTimeout(debounceTimeout);
-                    debounceTimeout = setTimeout(() => fetchAntrian(searchInput.value), 500);
+                    debounceTimeout = setTimeout(() => fetchAntrian(searchInput.value, 1), 500);
                 });
             }
         });

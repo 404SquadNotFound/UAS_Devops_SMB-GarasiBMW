@@ -73,10 +73,10 @@
                     window.location.href = "{{ route('kategori-sparepart.index') }}";
                 } else {
                     console.log(result.errors);
-                    Swal.fire('Gagal!', result.message || 'Cek inputan lu brok.', 'error');
+                    Swal.fire('Gagal!', result.message || 'Cek inputan lagi.', 'error');
                 }
             } catch (error) {
-                Swal.fire('Error!', 'Server backend lu mati kali brok.', 'error');
+                Swal.fire('Error!', 'Koneksi API terputus.', 'error');
             }
         };
     </script>

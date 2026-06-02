@@ -5,7 +5,7 @@
 @section('title_header', 'Pendataan Izin Keterlambatan')
 
 @section('table_header')
-    <th class="px-6 py-5">Nama Karyawan</th>
+    <th class="px-6 py-5">Nama Pegawai</th>
     <th class="px-6 py-5">Tanggal Terlambat</th>
     <th class="px-6 py-5">Alasan</th>
     <th class="px-6 py-5 text-center">Aksi</th>
@@ -54,6 +54,18 @@
         'addUrl' => route('izin-terlambat.create'),
         'btnText' => 'Tambah Izin'
     ])
+    {{-- Script: sembunyikan tombol tambah untuk role CEO --}}
+    <script>
+        (function() {
+            const role = (localStorage.getItem('user_role') || '').toLowerCase();
+            if (role === 'ceo') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    const addBtn = document.querySelector('a[href="{{ route('izin-terlambat.create') }}"]');
+                    if (addBtn) addBtn.style.display = 'none';
+                });
+            }
+        })();
+    </script>
 
         @include('layouts.table_wrapper', [
             // Data dummy, nanti ini dihapus jika sudah pakai data dari Controller

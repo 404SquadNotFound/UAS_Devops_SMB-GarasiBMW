@@ -27,6 +27,54 @@ class DatabaseSeeder extends Seeder
             'status' => true,
         ]);
 
+        Employee::create([
+            'name' => 'Test Finance',
+            'join_date' => '2026-01-01',
+            'birth_date' => '1995-05-20',
+            'address' => 'Jl. Pahlawan No. 123, Depok',
+            'email' => 'finance@garasibmw.com',
+            'password' => Hash::make('finance123'),
+            'role' => 'finance',
+            'base_salary' => 8000000,
+            'status' => true,
+        ]);
+
+        Employee::create([
+            'name' => 'Test Kepala Bengkel',
+            'join_date' => '2026-02-15',
+            'birth_date' => '1990-08-10',
+            'address' => 'Jl. Mekanik No. 45, Depok',
+            'email' => 'kepalabengkel@garasibmw.com',
+            'password' => Hash::make('kepalabengkel123'),
+            'role' => 'kepala_bengkel',
+            'base_salary' => 6000000,
+            'status' => true,
+        ]);
+
+        Employee::create([
+            'name' => 'Test Kepala Admin',
+            'join_date' => '2026-02-20',
+            'birth_date' => '1992-11-30',
+            'address' => 'Jl. Admin No. 78, Depok',
+            'email' => 'kepalaadmin@garasibmw.com',
+            'password' => Hash::make('kepalaadmin123'),
+            'role' => 'kepala_admin',
+            'base_salary' => 6000000,
+            'status' => true,
+        ]);
+
+        Employee::create([
+            'name' => 'Test Karyawan',
+            'join_date' => '2026-03-01',
+            'birth_date' => '1998-03-15',
+            'address' => 'Jl. Karyawan No. 90, Depok',
+            'email' => 'karyawan@garasibmw.com',
+            'password' => Hash::make('karyawan123'),
+            'role' => 'karyawan',
+            'base_salary' => 4000000,
+            'status' => true,
+        ]);
+
         // 2. SEEDER JENIS MESIN (Master Mesin BMW)
         $m54 = EngineType::create([
             'name' => 'M54',

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -48,7 +48,7 @@
                                 placeholder="Masukkan Email">
                         </div>
                         <div class="mb-4">
-                            <label for="password" class="form-label text-muted fw-semibold small">Password</label>
+                            <label for="password" class="form-label text-muted fw-semibold small">Kata Sandi</label>
                             <input type="password" class="form-control form-control-lg custom-input" id="password"
                                 required placeholder="Masukkan Password">
                         </div>
@@ -112,7 +112,7 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Akses Ditolak',
-                        text: result.message || 'Email atau password salah brok!'
+                        text: result.message || 'Email atau password salah!'
                     });
                     loginBtn.disabled = false;
                     loginBtn.innerText = 'Masuk';
@@ -122,11 +122,43 @@
                 console.error('Error:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Waduh!',
-                    text: 'Gagal terhubung ke server backend. Pastiin Laravel lu udah nyala (php artisan serve).'
+                    title: 'Error!',
+                    text: 'Gagal terhubung ke server backend. Pastikan Laravel sudah menyala.'
                 });
                 loginBtn.disabled = false;
                 loginBtn.innerText = 'Masuk';
+            }
+        });
+    </script>
+
+    <script>
+        // ── Tampilkan alert jika user diredirect dari auth/role guard ──
+        document.addEventListener('DOMContentLoaded', function () {
+            // Case 1: Belum login, coba akses halaman via URL langsung
+            const noSession = sessionStorage.getItem('no_session');
+            if (noSession) {
+                sessionStorage.removeItem('no_session');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sesi Tidak Ditemukan!',
+                    text: 'Kamu harus login terlebih dahulu untuk mengakses halaman tersebut.',
+                    confirmButtonText: 'Mengerti',
+                    confirmButtonColor: '#1273EB',
+                });
+                return;
+            }
+
+            // Case 2: Sudah login tapi role tidak punya akses (karyawan/guest)
+            const blockedRole = sessionStorage.getItem('blocked_role');
+            if (blockedRole) {
+                sessionStorage.removeItem('blocked_role');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Akses Ditolak!',
+                    text: 'Role "' + blockedRole + '" tidak memiliki izin untuk mengakses sistem ini. Hubungi administrator.',
+                    confirmButtonText: 'Mengerti',
+                    confirmButtonColor: '#1273EB',
+                });
             }
         });
     </script>

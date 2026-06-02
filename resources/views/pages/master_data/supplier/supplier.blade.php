@@ -1,4 +1,4 @@
-﻿@extends('layouts.master')
+@extends('layouts.master')
 
 @section('title', 'Tambah Supplier')
 @section('title_header', 'Master Data | Supplier')
@@ -23,20 +23,33 @@
         'exportExcelUrl' => route('supplier.export'),
         'exportPdfUrl' => route('supplier.export.pdf'),
     ])
+    {{-- Script: sembunyikan tombol tambah untuk role CEO, admin, kepala_bengkel --}}
+    <script>
+        (function() {
+            const role = (localStorage.getItem('user_role') || '').toLowerCase();
+            const noAdd = ['ceo', 'admin', 'kepala_bengkel'];
+            if (noAdd.includes(role)) {
+                document.addEventListener('DOMContentLoaded', function() {
+                    const addBtn = document.querySelector('a[href="{{ route('supplier.create') }}"]');
+                    if (addBtn) addBtn.style.display = 'none';
+                });
+            }
+        })();
+    </script>
     @include('layouts.table_wrapper')
 
     <script>
         let timeout = null;
         const token = localStorage.getItem('access_token');
 
-        async function fetchSuppliers(search = '') {
+        async function fetchSuppliers(search = '', page = 1) {
             const tbody = document.getElementById('supplierTableBody');
             const fromEl = document.getElementById('paginationFrom');
             const toEl = document.getElementById('paginationTo');
             const totalEl = document.getElementById('paginationTotal');
 
             try {
-                const res = await fetch(`/api/suppliers?limit=10&search=${search}`, {
+                const res = await fetch(`/api/suppliers?limit=10&search=${search}&page=${page}`, {
                     headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
                 });
                 const result = await res.json();
@@ -79,13 +92,14 @@
                             </tr>`;
                     });
                     fromEl.innerText = result.from || 0; toEl.innerText = result.to || 0; totalEl.innerText = result.total || 0;
+                    renderPaginationControls(result, (p) => fetchSuppliers(search, p));
                 }
             } catch (e) { console.error(e); }
         }
 
         document.getElementById('searchInput').addEventListener('input', (e) => {
             clearTimeout(timeout);
-            timeout = setTimeout(() => fetchSuppliers(e.target.value), 500);
+            timeout = setTimeout(() => fetchSuppliers(e.target.value, 1), 500);
         });
 
         document.addEventListener('DOMContentLoaded', () => fetchSuppliers());

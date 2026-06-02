@@ -30,10 +30,20 @@
         color: #F59E0B;
         border: 1.5px solid #FDE68A;
     }
+    .status-option-menunggu {
+        background-color: #F5F5F5;
+        color: #6B7280;
+        border: 1.5px solid #E5E7EB;
+    }
     .status-option-dalamproses {
         background-color: #EAF2FF;
         color: #1273EB;
         border: 1.5px solid #B1D3FF;
+    }
+    .status-option-dibatalkan {
+        background-color: #FFF5F5;
+        color: #FF4D4D;
+        border: 1.5px solid #FFE0E0;
     }
     .status-option-selesai {
         background-color: #EDFBF3;
@@ -42,6 +52,34 @@
     }
     #statusDropdownList {
         padding: 6px 0;
+    }
+    /* Payment status dropdown options */
+    .payment-option-item {
+        padding: 10px 14px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 13px;
+        border-radius: 10px;
+        margin-bottom: 4px;
+        transition: opacity 0.15s;
+    }
+    .payment-option-item:hover {
+        opacity: 0.8;
+    }
+    .payment-option-belum-lunas {
+        background-color: #FFF5F5;
+        color: #FF4D4D;
+        border: 1.5px solid #FFE0E0;
+    }
+    .payment-option-down-payment {
+        background-color: #FFF8EC;
+        color: #F59E0B;
+        border: 1.5px solid #FDE68A;
+    }
+    .payment-option-lunas {
+        background-color: #EDFBF3;
+        color: #16A34A;
+        border: 1.5px solid #A7F3D0;
     }
 </style>
 
@@ -127,6 +165,35 @@
                 </div>
             </div>
 
+            {{-- Section 2.5: Cabang Yang Digunakan --}}
+            <div class="bg-white rounded-[20px] border border-[#E5E9F2] shadow-sm overflow-hidden">
+                <div class="flex items-center gap-3 p-6 border-b border-gray-100">
+                    <svg class="w-5 h-5 text-[#1273EB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <h2 class="text-[16px] font-bold text-[#213F5C]">Cabang Yang Digunakan</h2>
+                </div>
+                <div class="p-8">
+                    <div class="flex items-center gap-3 bg-[#F0F7FF] border border-[#B1D3FF] rounded-xl p-4">
+                        <div class="w-9 h-9 rounded-xl bg-[#EAF2FF] flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5 text-[#1273EB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-widest mb-0.5">Cabang</p>
+                            <p id="detailCabang" class="text-[14px] font-bold text-[#1273EB]">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- Section 3: Penggunaan Suku Cadang --}}
             <div class="bg-white rounded-[20px] border border-[#E5E9F2] shadow-sm overflow-hidden">
                 <div class="flex items-center gap-3 p-6 border-b border-gray-100">
@@ -178,11 +245,11 @@
                     <p id="updatedAt" class="text-[13px] font-bold text-[#213F5C]">-</p>
                 </div>
 
-                {{-- ── Ubah Status — Custom Dropdown sesuai desain Container.png ── --}}
+                {{-- ── Ubah Status Pengerjaan — Custom Dropdown ── --}}
                 <div class="pt-1">
                     <p class="text-[11px] font-bold text-[#1273EB] mb-2 flex items-center gap-1">
                         <span class="w-1.5 h-1.5 rounded-full bg-[#1273EB] inline-block"></span>
-                        Ubah Status
+                        Ubah Status Pengerjaan
                     </p>
                     <div class="relative" id="statusDropdownWrapper">
                         {{-- Trigger --}}
@@ -203,6 +270,35 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- ── Ubah Status Pembayaran — Custom Dropdown ── --}}
+                <div class="pt-1">
+                    <p class="text-[11px] font-bold text-[#1273EB] mb-2 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#1273EB] inline-block"></span>
+                        Ubah Status Pembayaran
+                    </p>
+                    <div class="relative" id="paymentStatusDropdownWrapper">
+                        {{-- Trigger --}}
+                        <button type="button" id="paymentStatusDropdownTrigger"
+                            onclick="togglePaymentDropdown()"
+                            class="w-full px-4 py-3 rounded-xl border-2 font-bold text-[14px] outline-none flex items-center justify-between cursor-pointer transition-all"
+                            style="border-color: #FFE0E0; background-color: #FFF5F5; color: #FF4D4D;">
+                            <span id="paymentStatusDropdownLabel">Belum Lunas</span>
+                            <svg id="paymentStatusDropdownChevron" class="w-4 h-4 transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        {{-- Dropdown list --}}
+                        <div id="paymentStatusDropdownList"
+                            style="display: none;"
+                            class="absolute z-50 left-0 right-0 mt-2 bg-white border border-[#E5E9F2] rounded-2xl shadow-xl overflow-hidden">
+                            <div id="paymentStatusDropdownItems" class="p-2">
+                                {{-- Diisi oleh JS --}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             {{-- Action Buttons --}}
