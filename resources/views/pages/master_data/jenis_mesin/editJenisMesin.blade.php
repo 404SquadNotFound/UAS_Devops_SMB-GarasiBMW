@@ -118,7 +118,7 @@
                     await Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Data mesin sudah diperbarui.', timer: 2000, showConfirmButton: false });
                     window.location.href = "{{ route('jenis-mesin.index') }}";
                 } else {
-                    Swal.fire({ icon: 'error', title: 'Gagal', text: 'Cek lagi inputannya brok!' });
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: 'Cek lagi inputannya!' });
                 }
             } catch (error) {
                 Swal.fire('Error', 'Koneksi API bermasalah.', 'error');

@@ -4,7 +4,8 @@
 @section('title_header', 'Master Data | Suku Cadang')
 
 @section('form_icon')
-    <div class="w-12 h-12 bg-[#F59E0B] rounded-[15px] flex items-center justify-center text-white shadow-lg shadow-amber-200">
+    <div
+        class="w-12 h-12 bg-[#F59E0B] rounded-[15px] flex items-center justify-center text-white shadow-lg shadow-amber-200">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
                 d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
@@ -27,28 +28,43 @@
             </div>
             <div class="p-8 space-y-6">
 
+                {{-- 1. Kategori dulu --}}
                 <div>
-                    <label class="block text-[14px] font-bold text-[#213F5C] mb-2">Kode Barang <span class="text-xs font-normal text-gray-400">(Otomatis)</span></label>
+                    <label class="block text-[14px] font-bold text-[#213F5C] mb-2">Kategori <span
+                            class="text-red-500">*</span></label>
+                    <div class="relative" @click.stop>
+                        <input type="text" x-model="categorySearch" @input="filterCategories"
+                            @focus="showCategoryDropdown = true" placeholder="Ketik untuk cari kategori..."
+                            class="w-full px-5 py-3.5 bg-[#F9FBFF] border border-[#E5E9F2] rounded-xl outline-none text-[14px] font-semibold text-[#213F5C] focus:border-[#1273EB]"
+                            :class="showCategoryDropdown ? 'border-[#1273EB]' : ''">
+                        <div x-show="showCategoryDropdown && filteredCategories.length > 0" x-cloak
+                            class="absolute z-50 w-full mt-1 bg-white border border-[#E5E9F2] rounded-xl shadow-lg max-h-48 overflow-y-auto dropdown-scroll">
+                            <template x-for="cat in filteredCategories" :key="cat.category_id">
+                                <div @click="selectCategory(cat)"
+                                    class="px-5 py-3 text-[13px] font-semibold text-[#213F5C] hover:bg-[#EAF2FF] cursor-pointer border-b border-gray-50 last:border-0"
+                                    :class="formData.item_category_id == cat.category_id ? 'bg-[#EAF2FF] text-[#1273EB]' : ''"
+                                    x-text="cat.name"></div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 2. Kode Barang (readonly) --}}
+                <div>
+                    <label class="block text-[14px] font-bold text-[#213F5C] mb-2">Kode Barang <span
+                            class="text-xs font-normal text-gray-400">(Otomatis)</span></label>
                     <input type="text" x-model="formData.item_code" readonly
                         class="w-full px-5 py-3.5 bg-gray-100 border border-[#E5E9F2] rounded-xl outline-none text-[14px] text-gray-500 cursor-not-allowed">
                 </div>
 
+                {{-- 3. Nama Suku Cadang --}}
                 <div>
-                    <label class="block text-[14px] font-bold text-[#213F5C] mb-2">Nama Suku Cadang <span class="text-red-500">*</span></label>
+                    <label class="block text-[14px] font-bold text-[#213F5C] mb-2">Nama Suku Cadang <span
+                            class="text-red-500">*</span></label>
                     <input type="text" x-model="formData.name" placeholder="Masukkan nama suku cadang"
                         class="w-full px-5 py-3.5 bg-[#F9FBFF] border border-[#E5E9F2] rounded-xl focus:border-[#1273EB] transition-all outline-none text-[#213F5C] font-semibold text-[14px]">
                 </div>
 
-                <div>
-                    <label class="block text-[14px] font-bold text-[#213F5C] mb-2">Kategori <span class="text-red-500">*</span></label>
-                    <select x-model="formData.item_category_id"
-                        class="w-full px-5 py-3.5 bg-[#F9FBFF] border border-[#E5E9F2] rounded-xl focus:border-[#1273EB] transition-all outline-none text-[#213F5C] font-semibold text-[14px]">
-                        <option value="">Pilih Kategori</option>
-                        <template x-for="cat in categories" :key="cat.category_id">
-                            <option :value="cat.category_id" x-text="cat.name"></option>
-                        </template>
-                    </select>
-                </div>
             </div>
         </div>
 
@@ -64,37 +80,65 @@
                 <h2 class="text-[16px] font-bold text-[#213F5C]">Informasi Mobil</h2>
             </div>
             <div class="p-8 space-y-4">
+
+                {{-- Tipe Mobil --}}
                 <div>
                     <label class="block text-[14px] font-bold text-[#213F5C] mb-2">Tipe Mobil</label>
-                    <div class="relative">
+                    <div class="relative" @click.stop>
                         <input type="text" x-model="carSearch" @input="filterCarTypes" @focus="showCarDropdown = true"
-                            placeholder="Ketik untuk cari tipe mobil..." 
-                            class="w-full px-5 py-3.5 bg-white border border-[#E5E9F2] rounded-xl outline-none text-[14px] font-semibold text-[#213F5C] focus:border-[#1273EB]">
+                            placeholder="Ketik untuk cari tipe mobil..."
+                            class="w-full px-5 py-3.5 bg-white border border-[#E5E9F2] rounded-xl outline-none text-[14px] font-semibold text-[#213F5C] focus:border-[#1273EB]"
+                            :class="showCarDropdown ? 'border-[#1273EB]' : ''">
                         <div x-show="showCarDropdown && filteredCarTypes.length > 0" x-cloak
-                            class="absolute z-50 w-full mt-1 bg-white border border-[#E5E9F2] rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                            <div @click="selectCarType(null)" class="px-5 py-3 text-[13px] font-semibold text-gray-500 hover:bg-[#EAF2FF] cursor-pointer border-b border-gray-50">-- Semua Tipe Mobil --</div>
+                            class="absolute z-50 w-full mt-1 bg-white border border-[#E5E9F2] rounded-xl shadow-lg max-h-48 overflow-y-auto dropdown-scroll">
+                            <div @click="selectCarType(null)"
+                                class="px-5 py-3 text-[13px] font-semibold text-gray-400 hover:bg-[#EAF2FF] cursor-pointer border-b border-gray-50">
+                                -- Semua Tipe Mobil --</div>
                             <template x-for="car in filteredCarTypes" :key="car.car_type_id">
-                                <div @click="selectCarType(car)" 
+                                <div @click="selectCarType(car)"
                                     class="px-5 py-3 text-[13px] font-semibold text-[#213F5C] hover:bg-[#EAF2FF] cursor-pointer border-b border-gray-50 last:border-0"
+                                    :class="formData.car_type_id == car.car_type_id ? 'bg-[#EAF2FF] text-[#1273EB]' : ''"
                                     x-text="`${car.chassis_number} - ${car.name} (${car.series})`"></div>
                             </template>
                         </div>
                     </div>
                 </div>
+
+                {{-- Kode Mesin --}}
                 <div>
                     <label class="block text-[14px] font-bold text-[#213F5C] mb-2">Kode Mesin</label>
-                    <select x-model="formData.engine_code" @change="onEngineChange()"
-                        class="w-full px-5 py-3.5 bg-[#F9FBFF] border border-[#E5E9F2] rounded-xl outline-none text-[14px] font-semibold text-[#213F5C]">
-                        <option value="">-- Semua Kode Mesin --</option>
-                        <template x-for="eng in availableEngines" :key="eng">
-                            <option :value="eng" x-text="eng"></option>
-                        </template>
-                    </select>
+                    <div class="relative" @click.stop>
+                        <input type="text" readonly :value="formData.engine_code || ''"
+                            @click="showEngineDropdown = !showEngineDropdown"
+                            :placeholder="availableEngines.length ? 'Pilih kode mesin...' : 'Pilih tipe mobil dulu'"
+                            class="w-full px-5 py-3.5 bg-white border border-[#E5E9F2] rounded-xl outline-none text-[14px] font-semibold text-[#213F5C] cursor-pointer focus:border-[#1273EB]"
+                            :class="showEngineDropdown ? 'border-[#1273EB]' : ''">
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                            <svg class="w-4 h-4 transition-transform duration-200"
+                                :class="showEngineDropdown ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </div>
+                        <div x-show="showEngineDropdown && availableEngines.length > 0" x-cloak
+                            class="absolute z-50 w-full mt-1 bg-white border border-[#E5E9F2] rounded-xl shadow-lg max-h-48 overflow-y-auto dropdown-scroll">
+                            <div @click="formData.engine_code = ''; showEngineDropdown = false; onEngineChange()"
+                                class="px-5 py-3 text-[13px] font-semibold text-gray-400 hover:bg-[#EAF2FF] cursor-pointer border-b border-gray-50">
+                                -- Semua Kode Mesin --</div>
+                            <template x-for="eng in availableEngines" :key="eng">
+                                <div @click="formData.engine_code = eng; showEngineDropdown = false; onEngineChange()"
+                                    class="px-5 py-3 text-[13px] font-semibold text-[#213F5C] hover:bg-[#EAF2FF] cursor-pointer border-b border-gray-50 last:border-0"
+                                    :class="formData.engine_code === eng ? 'bg-[#EAF2FF] text-[#1273EB]' : ''"
+                                    x-text="eng"></div>
+                            </template>
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </div>
 
-        {{-- BOX 3: STOK & HARGA (Multi-entry) --}}
+        {{-- BOX 3: STOK & HARGA --}}
         <div class="bg-white rounded-[20px] border border-[#E5E9F2] shadow-sm overflow-hidden">
             <div class="flex items-center gap-3 p-6 border-b border-gray-100 bg-white">
                 <div class="w-8 h-8 bg-[#F1F5F9] rounded-lg flex items-center justify-center text-[#213F5C]">
@@ -106,7 +150,6 @@
             </div>
             <div class="p-8 space-y-6">
 
-                {{-- Daftar entri stok --}}
                 <template x-for="(stock, index) in stocks" :key="index">
                     <div class="bg-white border border-[#E5E9F2] rounded-3xl p-8 flex items-center shadow-sm mb-4">
                         <div class="w-fit">
@@ -119,26 +162,32 @@
                         <div class="text-right mr-10">
                             <p class="text-[20px] font-bold text-[#213F5C]" x-text="stock.quantity + ' pcs'"></p>
                             <p class="text-[12px] text-gray-400 font-bold uppercase"
-                                x-text="'HPP: Rp ' + new Intl.NumberFormat('id-ID').format(stock.cost_off_sell) + ' | ' + stock.date"></p>
+                                x-text="'HPP: Rp ' + new Intl.NumberFormat('id-ID').format(stock.cost_off_sell) + ' | ' + stock.date">
+                            </p>
                         </div>
                         <div class="flex gap-3">
                             <button type="button" @click="editStockFromList(index)"
                                 class="p-2 text-blue-500 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+                                    viewBox="0 0 24 24">
+                                    <path
+                                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
+                                    </path>
                                 </svg>
                             </button>
                             <button type="button" @click="removeStock(index)"
                                 class="p-2 text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+                                    viewBox="0 0 24 24">
+                                    <path
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                    </path>
                                 </svg>
                             </button>
                         </div>
                     </div>
                 </template>
 
-                {{-- Tombol tambah entri stok --}}
                 <button type="button" x-show="!showStockForm" @click="openStockForm()"
                     class="w-full py-4 bg-[#1273EB] text-white rounded-xl font-bold text-[15px] flex items-center justify-center gap-2 shadow-lg shadow-blue-100 hover:bg-[#0E59B8] transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
@@ -147,40 +196,70 @@
                     Tambah Entri Stok
                 </button>
 
-                {{-- FORM INPUT STOK --}}
-                <div x-show="showStockForm" class="bg-[#F8FAFF] border border-[#D1E4FF] rounded-3xl p-8 space-y-6" x-transition x-cloak>
+                <div x-show="showStockForm" class="bg-[#F8FAFF] border border-[#D1E4FF] rounded-3xl p-8 space-y-6"
+                    x-transition x-cloak>
                     <h3 class="text-[14px] font-bold text-[#213F5C]"
                         x-text="editStockIndex !== null ? 'Ubah Entri Stok' : 'Tambahkan Entri Stok'"></h3>
                     <div class="grid grid-cols-2 gap-5">
                         <div>
-                            <label class="block text-[13px] font-bold text-[#213F5C] mb-2">HPP <span class="text-red-500">*</span></label>
+                            <label class="block text-[13px] font-bold text-[#213F5C] mb-2">HPP <span
+                                    class="text-red-500">*</span></label>
                             <input type="number" x-model="tempStock.cost_off_sell" placeholder="Contoh: 500000"
+                                x-on:keydown="if(['-','e','E'].includes($event.key)) $event.preventDefault()"
                                 class="w-full px-5 py-3.5 bg-white border border-[#E5E9F2] rounded-xl outline-none text-[14px] text-[#213F5C]">
                         </div>
                         <div>
-                            <label class="block text-[13px] font-bold text-[#213F5C] mb-2">Harga Jual <span class="text-red-500">*</span></label>
+                            <label class="block text-[13px] font-bold text-[#213F5C] mb-2">Harga Jual <span
+                                    class="text-red-500">*</span></label>
                             <input type="number" x-model="tempStock.selling_price" placeholder="Contoh: 1000000"
+                                x-on:keydown="if(['-','e','E'].includes($event.key)) $event.preventDefault()"
                                 class="w-full px-5 py-3.5 bg-white border border-[#E5E9F2] rounded-xl outline-none text-[14px] text-[#213F5C]">
                         </div>
                         <div>
-                            <label class="block text-[13px] font-bold text-[#213F5C] mb-2">Jumlah <span class="text-red-500">*</span></label>
+                            <label class="block text-[13px] font-bold text-[#213F5C] mb-2">Jumlah <span
+                                    class="text-red-500">*</span></label>
                             <input type="number" x-model="tempStock.quantity" placeholder="Contoh: 10"
+                                x-on:keydown="if(['-','e','E'].includes($event.key)) $event.preventDefault()"
                                 class="w-full px-5 py-3.5 bg-white border border-[#E5E9F2] rounded-xl outline-none text-[14px] text-[#213F5C]">
                         </div>
                         <div>
-                            <label class="block text-[13px] font-bold text-[#213F5C] mb-2">Tanggal Masuk <span class="text-red-500">*</span></label>
-                            <input type="date" x-model="tempStock.date"
+                            <label class="block text-[13px] font-bold text-[#213F5C] mb-2">Tanggal Masuk <span
+                                    class="text-red-500">*</span></label>
+                            <input type="date" x-model="tempStock.date" :max="new Date().toISOString().split('T')[0]"
                                 class="w-full px-5 py-3.5 bg-white border border-[#E5E9F2] rounded-xl outline-none text-[14px] text-[#213F5C]">
                         </div>
                         <div class="col-span-2">
                             <label class="block text-[13px] font-bold text-[#213F5C] mb-2">Supplier</label>
-                            <select x-model="tempStock.supplier_id"
-                                class="w-full px-5 py-3.5 bg-white border border-[#E5E9F2] rounded-xl outline-none text-[14px] font-semibold text-[#213F5C]">
-                                <option value="">-- Tanpa Supplier --</option>
-                                <template x-for="sup in suppliers" :key="sup.supplier_id">
-                                    <option :value="sup.supplier_id" x-text="sup.name"></option>
-                                </template>
-                            </select>
+                            <div class="relative" @click.stop>
+                                <input type="text" readonly
+                                    :value="tempStock.supplier_id ? (suppliers.find(s => s.supplier_id == tempStock.supplier_id)
+                                        ?.name || '') : ''"
+                                    @click="showSupplierDropdown = !showSupplierDropdown"
+                                    placeholder="-- Tanpa Supplier --"
+                                    class="w-full px-5 py-3.5 bg-white border border-[#E5E9F2] rounded-xl outline-none text-[14px] font-semibold text-[#213F5C] cursor-pointer"
+                                    :class="showSupplierDropdown ? 'border-[#1273EB]' : ''">
+                                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                    <svg class="w-4 h-4 transition-transform duration-200"
+                                        :class="showSupplierDropdown ? 'rotate-180' : ''" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                    </svg>
+                                </div>
+                                <div x-show="showSupplierDropdown" x-cloak
+                                    class="absolute z-50 w-full mt-1 bg-white border border-[#E5E9F2] rounded-xl shadow-lg max-h-48 overflow-y-auto dropdown-scroll">
+                                    <div @click="tempStock.supplier_id = ''; showSupplierDropdown = false"
+                                        class="px-5 py-3 text-[13px] font-semibold text-gray-400 hover:bg-[#EAF2FF] cursor-pointer border-b border-gray-50">
+                                        -- Tanpa Supplier --</div>
+                                    <template x-for="sup in suppliers" :key="sup.supplier_id">
+                                        <div @click="tempStock.supplier_id = sup.supplier_id; showSupplierDropdown = false"
+                                            class="px-5 py-3 text-[13px] font-semibold text-[#213F5C] hover:bg-[#EAF2FF] cursor-pointer border-b border-gray-50 last:border-0"
+                                            :class="tempStock.supplier_id == sup.supplier_id ? 'bg-[#EAF2FF] text-[#1273EB]' :
+                                                ''"
+                                            x-text="sup.name"></div>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="flex gap-3 pt-2">
@@ -208,16 +287,33 @@
     <script>
         function sparepartEditForm() {
             return {
-                formData: { item_code: '', name: '', item_category_id: '', car_type_id: '', engine_code: '' },
-                tempStock: { cost_off_sell: '', selling_price: '', quantity: '', date: '', supplier_id: '' },
-                stocks: [],          // semua entri stok (lama + baru)
-                deletedStockIds: [], // stock_id yang dihapus user
+                formData: {
+                    item_code: '',
+                    name: '',
+                    item_category_id: '',
+                    car_type_id: '',
+                    engine_code: ''
+                },
+                tempStock: {
+                    cost_off_sell: '',
+                    selling_price: '',
+                    quantity: '',
+                    date: '',
+                    supplier_id: ''
+                },
+                stocks: [],
+                deletedStockIds: [],
                 suppliers: [],
                 categories: [],
+                filteredCategories: [],
+                categorySearch: '',
+                showCategoryDropdown: false,
                 carTypes: [],
                 filteredCarTypes: [],
                 carSearch: '',
                 showCarDropdown: false,
+                showEngineDropdown: false,
+                showSupplierDropdown: false,
                 allEngines: [],
                 availableEngines: [],
                 showStockForm: false,
@@ -226,84 +322,102 @@
                 partId: window.location.pathname.split('/').pop(),
 
                 async init() {
-                    const headers = { 'Authorization': `Bearer ${this.token}`, 'Accept': 'application/json' };
+                    const headers = {
+                        'Authorization': `Bearer ${this.token}`,
+                        'Accept': 'application/json'
+                    };
 
-                    // Load car types
                     try {
-                        const res = await fetch('/api/car-types?limit=200', { headers });
+                        const res = await fetch('/api/car-types?limit=200', {
+                            headers
+                        });
                         const r = await res.json();
                         this.carTypes = r.data?.data ?? r.data ?? [];
-                        // Extract semua engine codes unik
                         const engineSet = new Set();
                         this.carTypes.forEach(car => {
-                            if (car.engine_code) {
-                                car.engine_code.split(',').map(e => e.trim()).filter(Boolean).forEach(e => engineSet.add(e));
-                            }
+                            if (car.engine_code) car.engine_code.split(',').map(e => e.trim()).filter(Boolean)
+                                .forEach(e => engineSet.add(e));
                         });
                         this.allEngines = [...engineSet].sort();
                         this.availableEngines = this.allEngines;
                         this.filteredCarTypes = this.carTypes;
-                    } catch (e) { console.error('Gagal fetch car-types', e); }
+                    } catch (e) {
+                        console.error('Gagal fetch car-types', e);
+                    }
 
-                    // Load suppliers
                     try {
-                        const res = await fetch('/api/suppliers?limit=200', { headers });
+                        const res = await fetch('/api/suppliers?limit=200', {
+                            headers
+                        });
                         const r = await res.json();
                         this.suppliers = r.data?.data ?? r.data ?? [];
-                    } catch (e) { console.error('Gagal fetch suppliers', e); }
+                    } catch (e) {
+                        console.error('Gagal fetch suppliers', e);
+                    }
 
-                    // Load categories
                     try {
-                        const res = await fetch('/api/item-categories?limit=200', { headers });
+                        const res = await fetch('/api/item-categories?limit=200', {
+                            headers
+                        });
                         const r = await res.json();
                         this.categories = r.data?.data ?? r.data ?? [];
-                    } catch (e) { console.error('Gagal fetch categories', e); }
+                        this.filteredCategories = this.categories;
+                    } catch (e) {
+                        console.error('Gagal fetch categories', e);
+                    }
 
-                    // Load data sparepart existing (termasuk stocks)
                     try {
-                        const res = await fetch(`/api/spareparts/${this.partId}`, { headers });
+                        const res = await fetch(`/api/spareparts/${this.partId}`, {
+                            headers
+                        });
                         const r = await res.json();
                         if (res.ok) {
                             const d = r.data ?? r;
-                            this.formData.item_code        = d.item_code        ?? '';
-                            this.formData.name             = d.name             ?? '';
+                            this.formData.item_code = d.item_code ?? '';
+                            this.formData.name = d.name ?? '';
                             this.formData.item_category_id = d.item_category_id ?? '';
-                            this.formData.car_type_id      = d.car_type_id      ?? '';
+                            this.formData.car_type_id = d.car_type_id ?? '';
+                            this.formData.engine_code = d.engine_code ?? '';
+
+                            // Set category search display
+                            const cat = this.categories.find(c => c.category_id == this.formData.item_category_id);
+                            if (cat) this.categorySearch = cat.name;
+
+                            // Set car search display + available engines
                             if (this.formData.car_type_id) {
                                 const car = this.carTypes.find(c => c.car_type_id == this.formData.car_type_id);
                                 if (car) {
                                     this.carSearch = `${car.chassis_number} - ${car.name} (${car.series})`;
                                     if (car.engine_code) {
-                                        this.availableEngines = car.engine_code.split(',').map(e => e.trim()).filter(Boolean);
+                                        this.availableEngines = car.engine_code.split(',').map(e => e.trim()).filter(
+                                            Boolean);
                                     }
                                 }
                             }
 
-                            // Load entri stok
                             const rawStocks = d.stocks ?? [];
                             if (rawStocks.length > 0) {
                                 this.stocks = rawStocks.map(st => {
                                     const sup = this.suppliers.find(s => s.supplier_id == st.supplier_id);
                                     return {
-                                        stock_id:      st.stock_id,
+                                        stock_id: st.stock_id,
                                         cost_off_sell: st.cost_off_sell,
                                         selling_price: st.selling_price,
-                                        quantity:      st.quantity,
-                                        date:          st.date,
-                                        supplier_id:   st.supplier_id ?? '',
+                                        quantity: st.quantity,
+                                        date: st.date,
+                                        supplier_id: st.supplier_id ?? '',
                                         supplier_name: sup ? sup.name : (st.supplier?.name ?? ''),
                                     };
                                 });
                             } else {
-                                // Fallback: buat 1 baris dari data utama sparepart
                                 const sup = this.suppliers.find(s => s.supplier_id == d.supplier_id);
                                 this.stocks = [{
-                                    stock_id:      null,
+                                    stock_id: null,
                                     cost_off_sell: d.cost_off_sell ?? '',
                                     selling_price: d.selling_price ?? '',
-                                    quantity:      d.quantity ?? '',
-                                    date:          d.date ?? '',
-                                    supplier_id:   d.supplier_id ?? '',
+                                    quantity: d.quantity ?? '',
+                                    date: d.date ?? '',
+                                    supplier_id: d.supplier_id ?? '',
                                     supplier_name: sup ? sup.name : '',
                                 }];
                             }
@@ -315,21 +429,35 @@
                         Swal.fire('Error', 'Gagal memuat data dari server.', 'error');
                     }
 
-                    // Hook tombol simpan di sidebar
                     document.getElementById('submitBtnApi').onclick = (e) => {
                         e.preventDefault();
                         this.submitUpdateData();
                     };
 
-                    // Close dropdown when clicking outside
-                    document.addEventListener('click', (e) => {
-                        if (!e.target.closest('.relative')) this.showCarDropdown = false;
+                    document.addEventListener('click', () => {
+                        this.showCarDropdown = false;
+                        this.showEngineDropdown = false;
+                        this.showCategoryDropdown = false;
+                        this.showSupplierDropdown = false;
                     });
+                },
+
+                filterCategories() {
+                    const q = this.categorySearch.toLowerCase();
+                    this.filteredCategories = q ? this.categories.filter(c => c.name.toLowerCase().includes(q)) : this
+                        .categories;
+                    this.showCategoryDropdown = true;
+                },
+
+                selectCategory(cat) {
+                    this.formData.item_category_id = cat.category_id;
+                    this.categorySearch = cat.name;
+                    this.showCategoryDropdown = false;
                 },
 
                 filterCarTypes() {
                     const q = this.carSearch.toLowerCase();
-                    this.filteredCarTypes = q ? this.carTypes.filter(t => 
+                    this.filteredCarTypes = q ? this.carTypes.filter(t =>
                         (t.chassis_number + ' ' + t.name + ' ' + t.series).toLowerCase().includes(q)
                     ) : this.carTypes;
                     this.showCarDropdown = true;
@@ -354,11 +482,9 @@
                         return;
                     }
                     const car = this.carTypes.find(c => c.car_type_id == this.formData.car_type_id);
-                    if (car && car.engine_code) {
-                        this.availableEngines = car.engine_code.split(',').map(e => e.trim()).filter(Boolean);
-                    } else {
-                        this.availableEngines = [];
-                    }
+                    this.availableEngines = (car && car.engine_code) ?
+                        car.engine_code.split(',').map(e => e.trim()).filter(Boolean) :
+                        [];
                 },
 
                 onEngineChange() {
@@ -368,40 +494,62 @@
                         return;
                     }
                     const filtered = this.carTypes.filter(car =>
-                        car.engine_code && car.engine_code.split(',').map(e => e.trim()).includes(this.formData.engine_code)
+                        car.engine_code && car.engine_code.split(',').map(e => e.trim()).includes(this.formData
+                            .engine_code)
                     );
                     if (filtered.length === 1) this.formData.car_type_id = filtered[0].car_type_id;
                 },
 
                 openStockForm() {
                     this.editStockIndex = null;
-                    this.tempStock = { cost_off_sell: '', selling_price: '', quantity: '', date: '', supplier_id: '' };
+                    this.tempStock = {
+                        cost_off_sell: '',
+                        selling_price: '',
+                        quantity: '',
+                        date: '',
+                        supplier_id: ''
+                    };
                     this.showStockForm = true;
                 },
 
-                closeStockForm() { this.showStockForm = false; this.editStockIndex = null; },
+                closeStockForm() {
+                    this.showStockForm = false;
+                    this.editStockIndex = null;
+                },
 
                 editStockFromList(index) {
                     this.editStockIndex = index;
-                    this.tempStock = { ...this.stocks[index] };
+                    this.tempStock = {
+                        ...this.stocks[index]
+                    };
                     this.showStockForm = true;
                 },
 
                 addStockToList() {
-                    if (!this.tempStock.cost_off_sell || !this.tempStock.selling_price || !this.tempStock.quantity || !this.tempStock.date) {
-                        return Swal.fire('Data Belum Lengkap!', 'HPP, Harga Jual, Jumlah, dan Tanggal wajib diisi.', 'warning');
+                    if (!this.tempStock.cost_off_sell || !this.tempStock.selling_price || !this.tempStock.quantity || !this
+                        .tempStock.date) {
+                        return Swal.fire('Data Belum Lengkap!', 'HPP, Harga Jual, Jumlah, dan Tanggal wajib diisi.',
+                            'warning');
+                    }
+
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const inputDate = new Date(this.tempStock.date);
+                    if (inputDate > today) {
+                        return Swal.fire('Tanggal Tidak Valid!', 'Tanggal masuk barang tidak boleh di masa depan.',
+                            'warning');
                     }
                     const sup = this.suppliers.find(s => s.supplier_id == this.tempStock.supplier_id);
                     const stockData = {
                         ...this.tempStock,
                         cost_off_sell: Number(this.tempStock.cost_off_sell),
                         selling_price: Number(this.tempStock.selling_price),
-                        quantity:      Number(this.tempStock.quantity),
+                        quantity: Number(this.tempStock.quantity),
                         supplier_name: sup ? sup.name : '',
                     };
                     if (this.editStockIndex !== null) {
                         this.stocks[this.editStockIndex] = stockData;
-                        this.stocks = [...this.stocks]; // trigger Alpine reactivity
+                        this.stocks = [...this.stocks];
                     } else {
                         this.stocks.push(stockData);
                     }
@@ -415,72 +563,84 @@
                 },
 
                 async submitUpdateData() {
-                    if (!this.formData.name.trim()) {
-                        return Swal.fire('Error', 'Nama suku cadang wajib diisi!', 'error');
-                    }
-                    if (!this.formData.item_category_id) {
-                        return Swal.fire('Error', 'Kategori wajib dipilih!', 'error');
-                    }
-                    if (this.stocks.length === 0) {
-                        return Swal.fire('Error', 'Minimal harus ada 1 entri stok!', 'error');
-                    }
+                    if (!this.formData.name.trim()) return Swal.fire('Error', 'Nama suku cadang wajib diisi!', 'error');
+                    if (!this.formData.item_category_id) return Swal.fire('Error', 'Kategori wajib dipilih!', 'error');
+                    if (this.stocks.length === 0) return Swal.fire('Error', 'Minimal harus ada 1 entri stok!', 'error');
 
                     const firstStock = this.stocks[0];
                     const cat = this.categories.find(c => c.category_id == this.formData.item_category_id);
 
                     const sparepartData = {
-                        item_code:        this.formData.item_code,
-                        name:             this.formData.name,
-                        category:         cat ? cat.name : '',
+                        item_code: this.formData.item_code,
+                        name: this.formData.name,
+                        category: cat ? cat.name : '',
                         item_category_id: this.formData.item_category_id,
-                        car_type_id:      this.formData.car_type_id || null,
-                        supplier_id:      firstStock.supplier_id || null,
-                        cost_off_sell:    firstStock.cost_off_sell,
-                        selling_price:    firstStock.selling_price,
-                        quantity:         this.stocks.reduce((s, st) => s + st.quantity, 0),
-                        date:             firstStock.date,
+                        car_type_id: this.formData.car_type_id || null,
+                        supplier_id: firstStock.supplier_id || null,
+                        cost_off_sell: firstStock.cost_off_sell,
+                        selling_price: firstStock.selling_price,
+                        quantity: this.stocks.reduce((s, st) => s + st.quantity, 0),
+                        date: firstStock.date,
                     };
 
-                    Swal.fire({ title: 'Menyimpan perubahan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                    Swal.fire({
+                        title: 'Menyimpan perubahan...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
 
                     try {
-                        const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${this.token}` };
+                        const headers = {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        };
 
-                        // 1. Update data sparepart utama
                         const res1 = await fetch(`/api/spareparts/${this.partId}`, {
-                            method: 'PUT', headers,
+                            method: 'PUT',
+                            headers,
                             body: JSON.stringify(sparepartData)
                         });
                         const result1 = await res1.json();
                         if (!res1.ok) {
                             let msg = result1.message || 'Gagal update.';
                             if (result1.errors) msg = Object.values(result1.errors).flat().join('\n');
-                            return Swal.fire({ icon: 'error', title: 'Gagal Update', text: msg });
-                        }
-
-                        // 2. Hapus stok yang di-remove user
-                        for (const sid of this.deletedStockIds) {
-                            await fetch(`/api/spareparts/${this.partId}/stocks/${sid}`, {
-                                method: 'DELETE', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${this.token}` }
+                            return Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Update',
+                                text: msg
                             });
                         }
 
-                        // 3. Update/create tiap baris stok
+                        for (const sid of this.deletedStockIds) {
+                            await fetch(`/api/spareparts/${this.partId}/stocks/${sid}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Authorization': `Bearer ${this.token}`
+                                }
+                            });
+                        }
+
                         for (const st of this.stocks) {
                             const payload = {
                                 cost_off_sell: st.cost_off_sell,
                                 selling_price: st.selling_price,
-                                quantity:      st.quantity,
-                                date:          st.date,
-                                supplier_id:   st.supplier_id || null,
+                                quantity: st.quantity,
+                                date: st.date,
+                                supplier_id: st.supplier_id || null
                             };
                             if (st.stock_id) {
                                 await fetch(`/api/spareparts/${this.partId}/stocks/${st.stock_id}`, {
-                                    method: 'PUT', headers, body: JSON.stringify(payload)
+                                    method: 'PUT',
+                                    headers,
+                                    body: JSON.stringify(payload)
                                 });
                             } else {
                                 await fetch(`/api/spareparts/${this.partId}/stocks`, {
-                                    method: 'POST', headers, body: JSON.stringify(payload)
+                                    method: 'POST',
+                                    headers,
+                                    body: JSON.stringify(payload)
                                 });
                             }
                         }
@@ -503,5 +663,27 @@
         }
     </script>
 
-    <style>[x-cloak] { display: none !important; }</style>
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
+        .dropdown-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .dropdown-scroll::-webkit-scrollbar-track {
+            background: transparent;
+            margin: 6px 0;
+        }
+
+        .dropdown-scroll::-webkit-scrollbar-thumb {
+            background: #D1E4FF;
+            border-radius: 99px;
+        }
+
+        .dropdown-scroll::-webkit-scrollbar-thumb:hover {
+            background: #1273EB;
+        }
+    </style>
 @endsection

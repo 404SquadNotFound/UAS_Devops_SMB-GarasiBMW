@@ -97,8 +97,8 @@
                 const token = localStorage.getItem('access_token');
 
                 const result = await Swal.fire({
-                    title: 'Yakin mau hapus brok?',
-                    text: "Kalo ada mobil pake mesin ini, datanya bakal error!",
+                    title: 'Apakah kamu yakin ingin menghapus data ini?',
+                    text: "Kalo ada mobil pake mesin ini, datanya akan error!",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#FF4D4D',

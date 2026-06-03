@@ -1,7 +1,7 @@
 @extends('layouts.master')
 
-@section('title', 'Manajemen Karyawan')
-@section('title_header', 'Manajemen Pegawai | Data Karyawan')
+@section('title', 'Manajemen Pegawai')
+@section('title_header', 'Manajemen Pegawai | Data Pegawai')
 
 {{-- 1. WAJIB ADA HEADER TABEL --}}
 @section('table_header')
@@ -17,7 +17,7 @@
 @section('table_body')
     <tbody id="employeeTableBody">
         <tr>
-            <td colspan="6" class="text-center py-10 text-gray-400 italic">Memuat data karyawan...</td>
+            <td colspan="6" class="text-center py-10 text-gray-400 italic">Memuat data pegawai...</td>
         </tr>
     </tbody>
 @endsection
@@ -31,6 +31,18 @@
         'exportExcelUrl' => route('manajemen-pegawai.export'),
         'exportPdfUrl' => route('manajemen-pegawai.export.pdf'),
     ])
+    {{-- Script: sembunyikan tombol tambah untuk role CEO --}}
+    <script>
+        (function() {
+            const role = (localStorage.getItem('user_role') || '').toLowerCase();
+            if (role === 'ceo') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    const addBtn = document.querySelector('a[href="{{ route('manajemen-pegawai.create') }}"]');
+                    if (addBtn) addBtn.style.display = 'none';
+                });
+            }
+        })();
+    </script>
 
     @include('layouts.table_wrapper')
 
@@ -118,7 +130,7 @@
                                         <svg class="w-24 h-24 text-gray-200 mb-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                         </svg>
-                                        <h3 class="text-[16px] font-bold text-[#213F5C] mb-1">Data karyawan tidak ditemukan</h3>
+                                        <h3 class="text-[16px] font-bold text-[#213F5C] mb-1">Data Pegawai tidak ditemukan</h3>
                                         <p class="text-[13px] text-gray-400 font-medium">Coba cek keyword pencarian atau tambahkan data baru.</p>
                                     </div>
                                 </td>
@@ -131,6 +143,20 @@
                     }
 
                     // RENDER DATA (Kalo ada)
+                    // Helper: hitung durasi kerja dari join_date ke sekarang
+                    function calcDurasiKerja(joinDateStr) {
+                        if (!joinDateStr) return '-';
+                        const join = new Date(joinDateStr);
+                        const now  = new Date();
+                        let years  = now.getFullYear() - join.getFullYear();
+                        let months = now.getMonth() - join.getMonth();
+                        if (months < 0) { years--; months += 12; }
+                        if (years === 0 && months === 0) return 'Baru bergabung';
+                        const yPart = years  > 0 ? `${years} Tahun`  : '';
+                        const mPart = months > 0 ? `${months} Bulan` : '';
+                        return [yPart, mPart].filter(Boolean).join(' ');
+                    }
+
                     items.forEach(item => {
                         const isAktif = item.status == 1 || item.status === true || item.status === 'aktif';
                         const statusBadge = isAktif ?
@@ -141,7 +167,7 @@
                             <tr class="hover:bg-[#F9FCFF] transition-colors group">
                                 <td class="px-6 py-[18px] font-bold text-[#213F5C]">${item.name}</td>
                                 <td class="px-6 py-[18px] text-[#213F5C] font-semibold text-[13px]">${item.email}</td>
-                                <td class="px-6 py-[18px] text-[#213F5C] font-semibold text-[13px]">${item.join_date ?? '-'}</td>
+                                <td class="px-6 py-[18px] text-[#213F5C] font-semibold text-[13px]">${calcDurasiKerja(item.join_date)}</td>
                                 <td class="px-6 py-[18px] text-[#213F5C] font-semibold text-[13px]">${item.role}</td>
                                 <td class="px-6 py-[18px] text-[#213F5C] font-semibold text-[13px]">${statusBadge}</td>
                                 <td class="px-6 py-4.5 text-center">
