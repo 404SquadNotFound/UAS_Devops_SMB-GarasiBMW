@@ -79,24 +79,150 @@ jobs:
         env:
           XDEBUG_MODE: coverage
 
-      - name: Publish Test Report
-        uses: dorny/test-reporter@v1
+      - name: Install PDF tools
         if: always()
-        with:
-          name: 'Laravel Test Results'
-          path: test-results.xml
-          reporter: java-junit
-          fail-on-error: false
-          token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sudo apt-get install -y -q libpango-1.0-0 libpangoft2-1.0-0 fonts-dejavu
+          pip install weasyprint --break-system-packages --quiet
+      
+      - name: Generate PDF Test Report
+        if: always()
+        run: |
+          cat << 'PYEOF' > generate_report.py
+          import xml.etree.ElementTree as ET
+          from weasyprint import HTML
+          from datetime import datetime
 
-      - name: Upload Test Artifacts
+          # ── Parse test-results.xml ──────────────────────────────
+          tests = []
+          total = passed = failed = errors_count = skipped = 0
+          total_time = 0.0
+          try:
+              root = ET.parse('test-results.xml').getroot()
+              for tc in root.findall('.//testcase'):
+                  name      = tc.get('name', '-')
+                  classname = tc.get('classname', '-')
+                  t         = float(tc.get('time', 0))
+                  total_time += t
+                  if   tc.find('failure') is not None: status = 'failed';  failed += 1
+                  elif tc.find('error')   is not None: status = 'error';   errors_count += 1
+                  elif tc.find('skipped') is not None: status = 'skipped'; skipped += 1
+                  else:                                 status = 'passed';  passed += 1
+                  total += 1
+                  tests.append({'name': name, 'class': classname, 'time': f"{t:.3f}s", 'status': status})
+          except Exception as e:
+              print(f"Warning test-results: {e}")
+
+          # ── Parse coverage.xml ──────────────────────────────────
+          line_rate = branch_rate = 0.0
+          try:
+              root       = ET.parse('coverage.xml').getroot()
+              line_rate   = float(root.get('line-rate',   0)) * 100
+              branch_rate = float(root.get('branch-rate', 0)) * 100
+          except Exception as e:
+              print(f"Warning coverage: {e}")
+
+          # ── Helpers ─────────────────────────────────────────────
+          cov_color  = '#16a34a' if line_rate >= 80 else '#ca8a04' if line_rate >= 60 else '#dc2626'
+          pass_rate  = (passed / total * 100) if total else 0
+          passed_tests = [t for t in tests if t['status'] == 'passed']
+
+          rows = ''.join(f"""
+            <tr>
+              <td>{i+1}</td>
+              <td class="tname">{t['name']}</td>
+              <td class="cname">{t['class'].split('.')[-1]}</td>
+              <td class="dur">{t['time']}</td>
+              <td><span class="badge">&#10003; PASS</span></td>
+            </tr>""" for i, t in enumerate(passed_tests))
+
+          # ── HTML template ────────────────────────────────────────
+          html = f"""<!DOCTYPE html>
+          <html lang="en"><head><meta charset="UTF-8">
+          <style>
+            @page {{ margin: 18mm 14mm; }}
+            * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+            body {{ font-family: DejaVu Sans, Arial, sans-serif; font-size: 9.5pt; color: #1e293b; }}
+
+            .header {{ background: #0f172a; color: #fff; padding: 22px 26px; border-radius: 8px; margin-bottom: 18px; }}
+            .header h1 {{ font-size: 20pt; font-weight: 700; }}
+            .header p  {{ font-size: 8.5pt; opacity: .65; margin-top: 4px; }}
+
+            .cards {{ display: flex; gap: 10px; margin-bottom: 18px; }}
+            .card {{ flex: 1; border-radius: 8px; padding: 12px 14px; background: #f8fafc; border: 1px solid #e2e8f0; }}
+            .card .lbl {{ font-size: 7.5pt; color: #64748b; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }}
+            .card .val {{ font-size: 18pt; font-weight: 700; }}
+            .c-blue   .val {{ color: #2563eb; }}
+            .c-green  .val {{ color: #16a34a; }}
+            .c-red    .val {{ color: #dc2626; }}
+            .c-orange .val {{ color: #ca8a04; }}
+            .c-cov    .val {{ color: {cov_color}; }}
+            .c-cov        {{ border-color: {cov_color} !important; }}
+
+            .sec {{ font-size: 11pt; font-weight: 600; color: #0f172a; margin: 16px 0 8px; padding-bottom: 5px; border-bottom: 2px solid #e2e8f0; }}
+
+            .cov-wrap {{ background: #e2e8f0; border-radius: 99px; height: 9px; margin: 4px 0 10px; }}
+            .cov-bar  {{ height: 9px; border-radius: 99px; background: {cov_color}; width: {line_rate:.1f}%; }}
+            .cov-lbl  {{ display: flex; justify-content: space-between; font-size: 8pt; color: #475569; margin-bottom: 12px; }}
+
+            table {{ width: 100%; border-collapse: collapse; font-size: 8.5pt; }}
+            th {{ background: #0f172a; color: #fff; padding: 7px 9px; text-align: left; font-weight: 600; }}
+            td {{ padding: 5px 9px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }}
+            tr:nth-child(even) td {{ background: #f8fafc; }}
+            .tname {{ font-weight: 500; max-width: 270px; word-break: break-all; }}
+            .cname {{ color: #475569; font-size: 7.5pt; }}
+            .dur   {{ color: #64748b; text-align: right; white-space: nowrap; }}
+            .badge {{ padding: 2px 7px; border-radius: 4px; font-size: 7pt; font-weight: 700;
+                      background: #dcfce7; color: #15803d; }}
+
+            .footer {{ margin-top: 16px; text-align: center; font-size: 8pt; color: #94a3b8;
+                       border-top: 1px solid #e2e8f0; padding-top: 8px; }}
+          </style></head><body>
+
+          <div class="header">
+            <h1>Test Report</h1>
+            <p>Generated: {datetime.utcnow().strftime('%A, %d %B %Y  %H:%M UTC')}</p>
+          </div>
+
+          <div class="cards">
+            <div class="card c-blue">  <div class="lbl">Total Tests</div><div class="val">{total}</div></div>
+            <div class="card c-green"> <div class="lbl">Passed</div>     <div class="val">{passed}</div></div>
+            <div class="card c-red">   <div class="lbl">Failed</div>     <div class="val">{failed + errors_count}</div></div>
+            <div class="card c-orange"><div class="lbl">Skipped</div>    <div class="val">{skipped}</div></div>
+            <div class="card c-cov">   <div class="lbl">Coverage</div>   <div class="val">{line_rate:.1f}%</div></div>
+          </div>
+
+          <div class="sec">Code Coverage</div>
+          <div class="cov-lbl">
+            <span>Line Coverage: <strong>{line_rate:.2f}%</strong></span>
+            <span>Branch Coverage: <strong>{branch_rate:.2f}%</strong></span>
+          </div>
+          <div class="cov-wrap"><div class="cov-bar"></div></div>
+
+          <div class="sec">Passed Tests ({passed})</div>
+          <table>
+            <thead><tr><th>#</th><th>Test Name</th><th>Class</th><th>Duration</th><th>Status</th></tr></thead>
+            <tbody>{rows}</tbody>
+          </table>
+
+          <div class="footer">
+            Duration: {total_time:.3f}s &nbsp;&middot;&nbsp;
+            Pass rate: {pass_rate:.1f}% &nbsp;&middot;&nbsp;
+            Laravel CI Pipeline
+          </div>
+          </body></html>"""
+
+          HTML(string=html).write_pdf('test-report.pdf')
+          print(f"PDF generated — {passed} passed tests, {line_rate:.1f}% coverage")
+          PYEOF
+          python3 generate_report.py
+
+      - name: Upload PDF Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-reports-${{ github.run_number }}
-          path: |
-            test-results.xml
-            coverage.xml
+          name: test-report-${{ github.run_number }}
+          path: test-report.pdf
           retention-days: 14
 
       - name: Comment Coverage Summary on PR
@@ -175,8 +301,15 @@ jobs:
                 body,
               });
             }
-
-
+        
+      - name: Upload PDF Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report-${{ github.run_number }}
+          path: test-report.pdf
+          retention-days: 14
+          
       - name: Verify Sonar token
         if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
         run: |
