@@ -91,9 +91,11 @@ jobs:
           cat << 'PYEOF' > generate_report.py
           import xml.etree.ElementTree as ET
           from weasyprint import HTML
-          from datetime import datetime
+          from datetime import datetime, timezone, timedelta
 
-          # ── Parse test-results.xml ──────────────────────────────
+          wib = timezone(timedelta(hours=7))
+          now_wib = datetime.now(wib).strftime('%A, %d %B %Y  %H:%M WIB')
+
           tests = []
           total = passed = failed = errors_count = skipped = 0
           total_time = 0.0
@@ -181,7 +183,7 @@ jobs:
 
           <div class="header">
             <h1>Test Report</h1>
-            <p>Generated: {datetime.utcnow().strftime('%A, %d %B %Y  %H:%M UTC')}</p>
+            <p>Generated: {now_wib}</p>
           </div>
 
           <div class="cards">
