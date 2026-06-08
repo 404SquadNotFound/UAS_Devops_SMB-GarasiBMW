@@ -354,7 +354,16 @@ body: { jasa_list:[{nama,biaya}], metode_pembayaran, total_jasa, total_suku_cada
                                 <span id="mpRingJasaAmt" class="text-[12px] font-bold text-[#213F5C]">Rp 0</span>
                             </div>
                             <div class="flex justify-between items-center pt-2 border-t border-gray-100">
-                                <span class="text-[13px] font-bold text-[#213F5C]">Total</span>
+                                <span class="text-[13px] font-bold text-[#213F5C]">Subtotal</span>
+                                <span id="mpRingSubtotal" class="text-[14px] font-bold text-[#213F5C]">Rp 0</span>
+                            </div>
+                            <div id="mpRingDpRow" class="hidden flex justify-between items-center">
+                                <span class="text-[12px] text-gray-500">Down Payment (sudah dibayar)</span>
+                                <span id="mpRingDpAmt" class="text-[12px] font-bold text-[#F59E0B]">- Rp 0</span>
+                            </div>
+                            <div class="flex justify-between items-center pt-2 border-t border-[#E5E9F2]"
+                                style="border-top-width:1.5px;">
+                                <span class="text-[13px] font-bold text-[#213F5C]">Total yang Dibayar</span>
                                 <span id="mpRingTotal" class="text-[16px] font-bold text-[#16A34A]">Rp 0</span>
                             </div>
                         </div>
@@ -777,11 +786,15 @@ body: { jasa_list:[{nama,biaya}], metode_pembayaran, total_jasa, total_suku_cada
         let mpJasaList = [];
         let mpSelectedMetode = null;
         let mpTotalSC = 0;      // diisi dari API
+        let mpDpAmount = 0;     // DP yang sudah dibayar
+        let mpDpStatus = null;  // 'dp' | 'paid' | 'unpaid'
 
         function mpReset() {
             mpJasaList = [];
             mpSelectedMetode = null;
             mpTotalSC = 0;
+            mpDpAmount = 0;
+            mpDpStatus = null;
 
             document.getElementById('mpInputNama').value = '';
             document.getElementById('mpInputBiaya').value = '';
@@ -810,6 +823,13 @@ body: { jasa_list:[{nama,biaya}], metode_pembayaran, total_jasa, total_suku_cada
                     totalSC += Number(harga) * Number(jumlah);
                 });
                 mpTotalSC = totalSC;
+
+                // Ambil data DP dari transaksi
+                mpDpStatus = result.data.status_payment ?? 'unpaid';
+                mpDpAmount = (mpDpStatus === 'dp' && result.data.dp_amount)
+                    ? Number(result.data.dp_amount)
+                    : 0;
+
                 mpRenderRingkasan();
             } catch (e) {
                 console.error('mpLoadSukuCadang error:', e);
@@ -907,32 +927,43 @@ body: { jasa_list:[{nama,biaya}], metode_pembayaran, total_jasa, total_suku_cada
 
         // ── Render ringkasan + validasi tombol ───────────────────────────────────
         function mpRenderRingkasan() {
-            const hasJasa = mpJasaList.length > 0;
+            const hasJasa   = mpJasaList.length > 0;
             const hasMetode = !!mpSelectedMetode;
             const totalJasa = mpJasaList.reduce((acc, j) => acc + j.biaya, 0);
-            const totalAll = mpTotalSC + totalJasa;
+            const subtotal  = mpTotalSC + totalJasa;
+            const totalAll  = Math.max(0, subtotal - mpDpAmount);
 
-            document.getElementById('mpRingSC').textContent = formatRupiah(mpTotalSC);
-            document.getElementById('mpRingTotal').textContent = formatRupiah(totalAll);
+            document.getElementById('mpRingSC').textContent       = formatRupiah(mpTotalSC);
+            document.getElementById('mpRingSubtotal').textContent = formatRupiah(subtotal);
+            document.getElementById('mpRingTotal').textContent    = formatRupiah(totalAll);
 
             const jasaRow = document.getElementById('mpRingJasaRow');
             if (hasJasa) {
                 jasaRow.classList.remove('hidden');
                 document.getElementById('mpRingJasaCount').textContent = mpJasaList.length;
-                document.getElementById('mpRingJasaAmt').textContent = formatRupiah(totalJasa);
+                document.getElementById('mpRingJasaAmt').textContent   = formatRupiah(totalJasa);
             } else {
                 jasaRow.classList.add('hidden');
             }
 
-            document.getElementById('mpErrJasa').style.display = !hasJasa ? 'flex' : 'none';
+            // Tampilkan baris DP jika ada
+            const dpRow = document.getElementById('mpRingDpRow');
+            if (mpDpAmount > 0) {
+                dpRow.classList.remove('hidden');
+                document.getElementById('mpRingDpAmt').textContent = '- ' + formatRupiah(mpDpAmount);
+            } else {
+                dpRow.classList.add('hidden');
+            }
+
+            document.getElementById('mpErrJasa').style.display   = !hasJasa                ? 'flex' : 'none';
             document.getElementById('mpErrMetode').style.display = (hasJasa && !hasMetode) ? 'flex' : 'none';
 
             const btn = document.getElementById('mpBtnCetak');
             if (hasJasa && hasMetode) {
-                btn.disabled = false;
+                btn.disabled  = false;
                 btn.className = 'w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[14px] transition-all bg-[#16A34A] text-white hover:bg-[#15803D] shadow-lg shadow-green-100 cursor-pointer';
             } else {
-                btn.disabled = true;
+                btn.disabled  = true;
                 btn.className = 'w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[14px] transition-all bg-gray-200 text-gray-400 cursor-not-allowed';
             }
         }
@@ -942,19 +973,23 @@ body: { jasa_list:[{nama,biaya}], metode_pembayaran, total_jasa, total_suku_cada
             if (mpJasaList.length === 0) { Swal.fire('Oops!', 'Tambahkan minimal 1 jasa service!', 'warning'); return; }
             if (!mpSelectedMetode) { Swal.fire('Oops!', 'Pilih metode pembayaran!', 'warning'); return; }
 
-            const id = currentTransactionId ?? getAntrianId();
+            const id        = currentTransactionId ?? getAntrianId();
             const totalJasa = mpJasaList.reduce((acc, j) => acc + j.biaya, 0);
-            const totalAll = mpTotalSC + totalJasa;
+            const subtotal  = mpTotalSC + totalJasa;
+            const totalAll  = Math.max(0, subtotal - mpDpAmount);
 
             // Simpan ke sessionStorage untuk dipakai halaman previewNota
             sessionStorage.setItem('notaPembayaran', JSON.stringify({
-                transactionId: id,
-                jasaList: mpJasaList,
-                metode: mpSelectedMetode,
-                totalSukuCadang: mpTotalSC,
+                transactionId   : id,
+                jasaList        : mpJasaList,
+                metode          : mpSelectedMetode,
+                totalSukuCadang : mpTotalSC,
                 totalJasa,
+                subtotal,
+                dpAmount        : mpDpAmount,
+                dpStatus        : mpDpStatus,
                 totalAll,
-                tanggal: new Date().toISOString(),
+                tanggal         : new Date().toISOString(),
             }));
 
             // Redirect ke halaman preview nota

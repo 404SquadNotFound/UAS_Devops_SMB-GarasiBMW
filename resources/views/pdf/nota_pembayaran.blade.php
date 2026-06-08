@@ -401,13 +401,23 @@
                                         <td class="sum-lbl">Biaya Jasa Service:</td>
                                         <td class="sum-val">Rp {{ number_format($subtotalService, 0, ',', '.') }}</td>
                                     </tr>
+                                    @if(isset($dpAmount) && $dpAmount > 0)
+                                    <tr>
+                                        <td class="sum-lbl">Subtotal:</td>
+                                        <td class="sum-val">Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="sum-lbl" style="color:#B45309;">Down Payment:</td>
+                                        <td class="sum-val" style="color:#B45309;">- Rp {{ number_format($dpAmount, 0, ',', '.') }}</td>
+                                    </tr>
+                                    @endif
                                     <tr>
                                         <td colspan="2">
                                             <div class="total-line"></div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="total-lbl">TOTAL:</td>
+                                        <td class="total-lbl">{{ isset($dpAmount) && $dpAmount > 0 ? 'SISA BAYAR:' : 'TOTAL:' }}</td>
                                         <td class="total-val">Rp {{ number_format($total, 0, ',', '.') }}</td>
                                     </tr>
                                 </table>
