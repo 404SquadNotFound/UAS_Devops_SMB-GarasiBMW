@@ -34,6 +34,12 @@ class PdfNota
 
         $total = $subtotalParts + $subtotalService;
 
+        // Ambil DP dari transaksi
+        $dpAmount = ($transaction->status_payment === 'dp' && $transaction->dp_amount)
+            ? (float) $transaction->dp_amount
+            : 0;
+        $totalAfterDp = max(0, $total - $dpAmount);
+
         $nomorNota = 'TRX-' . now()->format('Ymd') . str_pad($transactionId, 4, '0', STR_PAD_LEFT);
 
         // Mapping cabang (kolom string di tabel)
@@ -48,7 +54,9 @@ class PdfNota
             'jasaList'        => collect($jasaList),
             'subtotalParts'   => $subtotalParts,
             'subtotalService' => $subtotalService,
-            'total'           => $total,
+            'subtotal'        => $total,
+            'dpAmount'        => $dpAmount,
+            'total'           => $totalAfterDp,
             'copy'            => $copy,
             'metode'          => $metode,
             'tanggal'         => now()->locale('id')->translatedFormat('d F Y'),
@@ -92,6 +100,12 @@ class PdfNota
         $subtotalService = $items->where('item_type', 'Service')->sum('subtotal');
         $total           = $subtotalParts + $subtotalService;
 
+        // Ambil DP dari transaksi
+        $dpAmount = ($transaction->status_payment === 'dp' && $transaction->dp_amount)
+            ? (float) $transaction->dp_amount
+            : 0;
+        $totalAfterDp = max(0, $total - $dpAmount);
+
         $nomorNota = 'TRX-' . now()->format('Ymd') . str_pad($transactionId, 4, '0', STR_PAD_LEFT);
 
         $cabangMap = [
@@ -105,7 +119,9 @@ class PdfNota
             'jasaList'        => collect(),
             'subtotalParts'   => $subtotalParts,
             'subtotalService' => $subtotalService,
-            'total'           => $total,
+            'subtotal'        => $total,
+            'dpAmount'        => $dpAmount,
+            'total'           => $totalAfterDp,
             'copy'            => $copy,
             'metode'          => $transaction->payment_method ?? '-',
             'tanggal'         => now()->locale('id')->translatedFormat('d F Y'),

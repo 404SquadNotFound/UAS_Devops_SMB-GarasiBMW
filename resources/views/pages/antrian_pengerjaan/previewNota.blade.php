@@ -318,9 +318,18 @@ function renderCopy(type){
         <div class="summary-block">
             <div class="sum-row"><span class="sum-lbl">Subtotal Suku Cadang:</span><span class="sum-val">${fmtRp(nota.totalSukuCadang)}</span></div>
             <div class="sum-row"><span class="sum-lbl">Biaya Jasa Service:</span><span class="sum-val">${fmtRp(nota.totalJasa)}</span></div>
+            ${(nota.dpAmount??0)>0 ? `
+            <div class="sum-row" style="margin-top:3px;">
+                <span class="sum-lbl">Subtotal:</span>
+                <span class="sum-val">${fmtRp(nota.subtotal??(nota.totalSukuCadang+nota.totalJasa))}</span>
+            </div>
+            <div class="sum-row" style="color:#D97706;">
+                <span style="color:#D97706;font-size:9.5px;">Down Payment (sudah dibayar):</span>
+                <span style="font-weight:600;color:#D97706;">- ${fmtRp(nota.dpAmount)}</span>
+            </div>` : ''}
             <hr class="sum-sep">
             <div class="sum-total">
-                <span class="sum-total-lbl">TOTAL:</span>
+                <span class="sum-total-lbl">${(nota.dpAmount??0)>0 ? 'SISA BAYAR:' : 'TOTAL:'}</span>
                 <span class="sum-total-val">${fmtRp(nota.totalAll)}</span>
             </div>
         </div>

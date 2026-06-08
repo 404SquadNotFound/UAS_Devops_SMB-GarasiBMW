@@ -255,7 +255,16 @@
                             <span id="ringkasanJasaTotal" class="text-[12px] font-bold text-[#213F5C]">Rp 0</span>
                         </div>
                         <div class="flex justify-between items-center pt-2 border-t border-gray-100">
-                            <span class="text-[13px] font-bold text-[#213F5C]">Total</span>
+                            <span class="text-[13px] font-bold text-[#213F5C]">Subtotal</span>
+                            <span id="ringkasanSubtotal" class="text-[14px] font-bold text-[#213F5C]">Rp 0</span>
+                        </div>
+                        <div id="ringkasanDpRow" class="hidden flex justify-between items-center">
+                            <span class="text-[12px] text-gray-500">Down Payment (sudah dibayar)</span>
+                            <span id="ringkasanDpJumlah" class="text-[12px] font-bold text-[#F59E0B]">- Rp 0</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-[#E5E9F2]"
+                            style="border-top-width:1.5px;">
+                            <span class="text-[13px] font-bold text-[#213F5C]">Total yang Dibayar</span>
                             <span id="ringkasanTotal" class="text-[16px] font-bold text-[#16A34A]">Rp 0</span>
                         </div>
                     </div>
@@ -317,6 +326,8 @@
     let jasaList        = [];
     let selectedMetode  = null;
     let totalSukuCadang = 0;
+    let dpAmount        = 0;   // DP yang sudah dibayar saat pendaftaran antrian
+    let dpStatus        = null; // 'dp' | 'paid' | 'unpaid'
     let currentPage     = 1;
     const PER_PAGE      = 10;
 
@@ -357,6 +368,13 @@
                 totalSC += Number(harga) * Number(jumlah);
             });
             totalSukuCadang = totalSC;
+
+            // Ambil data DP dari transaksi
+            dpStatus = result.data.status_payment ?? 'unpaid';
+            dpAmount = (dpStatus === 'dp' && result.data.dp_amount)
+                ? Number(result.data.dp_amount)
+                : 0;
+
             updateUI();
         } catch (e) {
             console.error('Gagal load transaksi:', e);
@@ -474,9 +492,11 @@
         const hasJasa   = jasaList.length > 0;
         const hasMetode = !!selectedMetode;
         const totalJasa = jasaList.reduce((acc, j) => acc + j.biaya, 0);
-        const totalAll  = totalSukuCadang + totalJasa;
+        const subtotal  = totalSukuCadang + totalJasa;
+        const totalAll  = Math.max(0, subtotal - dpAmount);
 
         document.getElementById('ringkasanSukuCadang').textContent = formatRupiah(totalSukuCadang);
+        document.getElementById('ringkasanSubtotal').textContent   = formatRupiah(subtotal);
         document.getElementById('ringkasanTotal').textContent      = formatRupiah(totalAll);
 
         const jasaRow = document.getElementById('ringkasanJasaRow');
@@ -486,6 +506,15 @@
             document.getElementById('ringkasanJasaTotal').textContent = formatRupiah(totalJasa);
         } else {
             jasaRow.classList.add('hidden');
+        }
+
+        // Tampilkan baris DP jika ada
+        const dpRow = document.getElementById('ringkasanDpRow');
+        if (dpAmount > 0) {
+            dpRow.classList.remove('hidden');
+            document.getElementById('ringkasanDpJumlah').textContent = '- ' + formatRupiah(dpAmount);
+        } else {
+            dpRow.classList.add('hidden');
         }
 
         document.getElementById('errorJasaBox').style.display   = !hasJasa                ? 'flex' : 'none';
@@ -508,7 +537,8 @@
 
         const id        = getTransactionId();
         const totalJasa = jasaList.reduce((acc, j) => acc + j.biaya, 0);
-        const totalAll  = totalSukuCadang + totalJasa;
+        const subtotal  = totalSukuCadang + totalJasa;
+        const totalAll  = Math.max(0, subtotal - dpAmount);
 
         sessionStorage.setItem('notaPembayaran', JSON.stringify({
             transactionId   : id,
@@ -516,6 +546,9 @@
             metode          : selectedMetode,
             totalSukuCadang,
             totalJasa,
+            subtotal,
+            dpAmount,
+            dpStatus,
             totalAll,
             tanggal         : new Date().toISOString(),
         }));
