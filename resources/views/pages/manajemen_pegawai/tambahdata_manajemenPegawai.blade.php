@@ -149,6 +149,14 @@
 
         // ─── Tambah Pendapatan Lain ───────────────────────────────
         let extraCount = 0;
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const today = `${year}-${month}-${day}`;
+
+        document.getElementById('join_date').setAttribute('max', today);
+        document.getElementById('birth_date').setAttribute('max', today);
 
         function tambahPendapatan() {
             extraCount++;
@@ -201,18 +209,28 @@
             // 2. Cek mandatory fields
             let emptyFields = [];
 
-            if (!nameVal) emptyFields.push('Nama Lengkap');
-            if (!joinDateVal) emptyFields.push('Tanggal Bergabung');
-            if (!birthDateVal) emptyFields.push('Tanggal Lahir');
-            if (!addressVal) emptyFields.push('Alamat');
-            if (!emailVal) emptyFields.push('Email');
-            if (!passwordVal) emptyFields.push('Password');
-            if (!roleVal) emptyFields.push('Roles');
+            if (!nameVal) emptyFields.push('Nama Lengkap kosong');
+            
+            if (!joinDateVal) {
+                emptyFields.push('Tanggal Bergabung kosong');
+            } else if (joinDateVal > today) {
+                emptyFields.push('Tanggal Bergabung tidak valid');
+            }
 
-            // 3. Eksekusi Swal kalau ada field kosong
+            if (!birthDateVal) {
+                emptyFields.push('Tanggal Lahir kosong');
+            } else if (birthDateVal > today) {
+                emptyFields.push('Tanggal Lahir tidak valid');
+            }
+
+            if (!addressVal) emptyFields.push('Alamat kosong');
+            if (!emailVal) emptyFields.push('Email kosong');
+            if (!passwordVal) emptyFields.push('Password kosong');
+            if (!roleVal) emptyFields.push('Roles kosong');
+
             if (emptyFields.length > 0) {
-                let errorMessage = emptyFields.join(', ') + ' tidak boleh kosong!';
-                Swal.fire('Data Belum Lengkap!', errorMessage, 'warning');
+                let errorMessage = emptyFields.join(', ') + '!';
+                Swal.fire('Data Tidak Valid!', errorMessage, 'warning');
                 return;
             }
 
