@@ -335,7 +335,7 @@
                             window.location.href = "{{ route('pelanggan.index') }}";
                         } else {
                             const err = await res.json();
-                            Swal.fire('Gagal!', err.message || 'Terjadi kesalahan.', 'error');
+                            Swal.fire('Peringatan!', err.message || 'Terjadi kesalahan.', 'warning');
                         }
                     } catch (e) { Swal.fire('Error', 'Koneksi ke API bermasalah.', 'error'); }
                 }
