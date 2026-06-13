@@ -41,7 +41,7 @@ class EngineTypeStoreTest extends TestCase
 
     protected function tearDown(): void
     {
-        Mockery::close();
+        \App\Models\EngineType::flushEventListeners();
         parent::tearDown();
     }
 

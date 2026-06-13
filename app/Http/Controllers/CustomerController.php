@@ -26,16 +26,20 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string',
-            'phone_number' => 'required|string',
+            'phone_number' => 'required|string|unique:customers,phone_number',
             'address' => 'required|string',
             'cars' => 'required|array|min:1',
             'cars.*.car_type_id' => 'required|exists:car_types,car_type_id',
-            'cars.*.license_plate' => 'required|string',
+            'cars.*.license_plate' => 'required|string|unique:vehicles,license_plate',
             'cars.*.km_reading' => 'nullable',
             'cars.*.year' => 'nullable',
             'cars.*.engine_name' => 'nullable|string',
+        ], [
+            'phone_number.unique' => 'Nomor telepon sudah terdaftar.',
+            'cars.*.license_plate.unique' => 'Plat nomor :input sudah terdaftar.',
         ]);
-        
+
+
         $validationResult = $customerService->formatAndValidate($validated['cars']);
 
         if (!$validationResult['success']) {
@@ -207,24 +211,24 @@ class CustomerController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhere('phone_number', 'LIKE', "%{$search}%");
+                    ->orWhere('phone_number', 'LIKE', "%{$search}%");
             });
         }
 
         $customers = $query->orderBy('name')->limit(30)->get()->map(function ($c) {
             return [
-                'id'           => $c->customer_id,
-                'nama'         => $c->name,
-                'telepon'      => $c->phone_number,
-                'alamat'       => $c->address,
-                'vehicles'     => $c->vehicles->map(function ($v) {
+                'id' => $c->customer_id,
+                'nama' => $c->name,
+                'telepon' => $c->phone_number,
+                'alamat' => $c->address,
+                'vehicles' => $c->vehicles->map(function ($v) {
                     return [
-                        'id'            => $v->vehicles_id,
-                        'model'         => $v->model,
+                        'id' => $v->vehicles_id,
+                        'model' => $v->model,
                         'license_plate' => $v->license_plate,
-                        'engine_code'   => $v->engine_code,
-                        'odometer'      => $v->odometer,
-                        'label'         => $v->model . ' — ' . $v->license_plate,
+                        'engine_code' => $v->engine_code,
+                        'odometer' => $v->odometer,
+                        'label' => $v->model . ' — ' . $v->license_plate,
                     ];
                 })->values(),
             ];
@@ -232,7 +236,7 @@ class CustomerController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data'   => $customers,
+            'data' => $customers,
         ]);
     }
 }

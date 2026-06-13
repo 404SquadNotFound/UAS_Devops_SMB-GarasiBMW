@@ -141,6 +141,16 @@
         const employeeId = pathArray[pathArray.length - 1];
         const token = localStorage.getItem('access_token');
 
+        // blokir input tanggal di masa depan
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const today = `${year}-${month}-${day}`;
+
+        document.getElementById('join_date').setAttribute('max', today);
+        document.getElementById('birth_date').setAttribute('max', today)
+
         // ─── Blokir input non-angka ───────────────────────────────
         document.querySelectorAll('input[inputmode="numeric"]').forEach(input => {
             input.addEventListener('keydown', (e) => {
