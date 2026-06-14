@@ -324,7 +324,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build-and-push:
       needs: laravel-tests  # Build Docker hanya jalan jika testing & SonarCloud aman
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
       runs-on: ubuntu-latest
 
       steps:
