@@ -6,7 +6,7 @@ RUN composer install --no-interaction --prefer-dist --ignore-platform-reqs --no-
 
 # Pindahkan ke sini: Copy source code ke Stage 1 agar Composer bisa membaca class untuk di-optimize
 COPY . .
-RUN composer dump-autoload --no-interaction --optimize
+RUN composer dump-autoload --no-interaction
 
 # STAGE 2: Final Production Image (PHP + Apache)
 FROM php:8.2-apache
