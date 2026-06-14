@@ -1,7 +1,7 @@
 @extends('layouts.master')
 
 @section('title', 'Laporan Absensi')
-@section('title_header', 'Manajemen Rekap Pegawai')
+@section('title_header', 'Laporan Absensi')
 
 {{-- 1. HEADER TABEL ABSENSI MINGGUAN --}}
 @section('table_header')
