@@ -322,8 +322,11 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  build-and-push:
-      needs: laravel-tests  # Build Docker hanya jalan jika testing & SonarCloud aman
+          
+  build-and-push-docker-image:
+      needs: laravel-tests  
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
       runs-on: ubuntu-latest
 
       steps:
