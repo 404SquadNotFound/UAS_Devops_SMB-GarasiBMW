@@ -40,7 +40,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@7c49231eda996443ca239618bff277732d8479e9
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           extensions: mbstring,bcmath,pdo,pdo_mysql,xml,xdebug
