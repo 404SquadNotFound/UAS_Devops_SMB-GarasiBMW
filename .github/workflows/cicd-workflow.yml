@@ -35,12 +35,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@7c49231eda996443ca239618bff277732d8479e9
         with:
           php-version: '8.4'
           extensions: mbstring,bcmath,pdo,pdo_mysql,xml,xdebug
