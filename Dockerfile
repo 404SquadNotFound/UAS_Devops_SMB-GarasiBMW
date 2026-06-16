@@ -8,7 +8,7 @@ COPY . .
 RUN composer dump-autoload --no-interaction --no-scripts -o
 
 # STAGE 2: Final Production Image (PHP + Apache)
-FROM php:8.2-apache
+FROM php:8.4-apache
 
 # Install extension sistem & driver pdo_mysql untuk koneksi Laravel ke database
 RUN apt-get update && apt-get install -y \

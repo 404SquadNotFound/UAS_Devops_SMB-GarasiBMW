@@ -81,6 +81,10 @@
         }
     },
     "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "platform-check": false,
         "audit": {
             "ignore": {
                 "PKSA-21fb-n1x5-5nf7": "*"
