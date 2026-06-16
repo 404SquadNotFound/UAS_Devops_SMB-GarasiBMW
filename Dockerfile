@@ -4,10 +4,13 @@ WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-interaction --prefer-dist --ignore-platform-reqs --no-scripts --no-autoloader
 
+COPY . .
+RUN composer dump-autoload --no-interaction --no-scripts -o
+
 # STAGE 2: Final Production Image (PHP + Apache)
 FROM php:8.2-apache
 
-# Install extension sistem & driver pdo_mysql untuk koneksi Laravel ke MySQL
+# Install extension sistem & driver pdo_mysql untuk koneksi Laravel ke database
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
@@ -29,11 +32,8 @@ WORKDIR /var/www/html
 # Copy seluruh source code projek Laravel (termasuk file .blade.php dan assets di public)
 COPY . .
 
-# Ambil folder vendor PHP hasil download dari Stage 1
+# Ambil folder vendor PHP dari Stage 1 (yang sudah siap dan sudah di-dump autoload-nya)
 COPY --from=backend-vendor /app/vendor/ /var/www/html/vendor/
-
-# Optimasi autoload Composer untuk mode produksi
-RUN composer dump-autoload --no-interaction --optimize
 
 # Set permission hak akses agar server Apache bisa menulis ke folder storage & cache
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
