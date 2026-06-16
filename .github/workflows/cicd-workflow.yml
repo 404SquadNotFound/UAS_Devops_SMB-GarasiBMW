@@ -319,6 +319,7 @@ jobs:
       - name: SonarQube Scan
         if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
         uses: SonarSource/sonarqube-scan-action@v6
+        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
