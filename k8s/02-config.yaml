@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: myapp
+data:
+  APP_NAME: "SMBGarasiBMW"
+  APP_ENV: "production"
+  DB_CONNECTION: "mysql"
+  DB_HOST: "mysql-service"
+  DB_PORT: "3306"
+  DB_DATABASE: "backend"
+  DB_USERNAME: "root"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secrets
+  namespace: myapp
+type: Opaque
+stringData:
+  db-root-password: "rootpassword123"
+  app-key: "base64:TolongGantiDenganAppKeyLaravelMu="
