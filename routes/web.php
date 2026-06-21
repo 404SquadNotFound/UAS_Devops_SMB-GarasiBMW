@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\SupplierController; 
 use App\Http\Controllers\EngineTypeController; 
+use App\Http\Controllers\MetricsController;
+
+Route::get('/metrics', MetricsController::class)->name('metrics');
 
 // Route Login
 Route::get('/', function () {
