@@ -249,4 +249,3 @@ Route::get('/antrian-pengerjaan/{id}/nota-preview', [NotaController::class, 'pre
 // Download / stream PDF nota
 Route::post('/antrian-pengerjaan/{id}/nota-pdf', [NotaController::class, 'downloadPdf'])
     ->name('antrian-pengerjaan.notaPdf');
-

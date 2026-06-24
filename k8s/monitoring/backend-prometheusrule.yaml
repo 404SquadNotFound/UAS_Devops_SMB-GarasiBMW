@@ -1,0 +1,36 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: laravel-backend-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: laravel-backend
+      rules:
+        - alert: LaravelBackendDown
+          expr: up{namespace="myapp",service="laravel-service"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: Backend Laravel tidak dapat di-scrape
+            description: Prometheus gagal mengambil /metrics dari {{ $labels.instance }} selama lebih dari 2 menit.
+
+        - alert: LaravelDatabaseDown
+          expr: laravel_database_up == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: Koneksi database Laravel bermasalah
+            description: Pemeriksaan database dari backend {{ $labels.instance }} gagal selama lebih dari 2 menit.
+
+        - alert: LaravelPodRestarting
+          expr: increase(kube_pod_container_status_restarts_total{namespace="myapp",container="laravel"}[15m]) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: Pod Laravel mengalami restart
+            description: Container Laravel pada pod {{ $labels.pod }} restart dalam 15 menit terakhir.

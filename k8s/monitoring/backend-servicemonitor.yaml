@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: laravel-backend
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+      - myapp
+  selector:
+    matchLabels:
+      app: laravel
+  endpoints:
+    - port: http
+      path: /metrics
+      scheme: http
+      interval: 15s
+      scrapeTimeout: 10s

@@ -1,0 +1,36 @@
+prometheus:
+  service:
+    type: NodePort
+    nodePort: 30090
+  prometheusSpec:
+    retention: 15d
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+
+grafana:
+  service:
+    type: NodePort
+    nodePort: 30030
+
+kubeStateMetrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+
+kubelet:
+  enabled: true
+  serviceMonitor:
+    cAdvisor: true
+    probes: true
+    resource: true
+
+alertmanager:
+  enabled: true
