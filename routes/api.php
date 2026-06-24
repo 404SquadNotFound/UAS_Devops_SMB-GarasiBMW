@@ -6,6 +6,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ServiceTransactionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SparepartController;
+use App\Http\Controllers\SparepartStockController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\ItemCategoryController;
@@ -36,7 +37,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Route custom buat update status servis
+    Route::get('/transactions/status-summary', [ServiceTransactionController::class, 'statusSummary']);
     Route::put('/transactions/{id}/status', [ServiceTransactionController::class, 'updateStatus']);
+    Route::post('/transactions/{id}/finalize', [ServiceTransactionController::class, 'finalize']);
+
+    // Endpoint data stok suku cadang untuk dropdown antrian pengerjaan
+    Route::get('/spareparts-for-antrian', [SparepartController::class, 'listForAntrian']);
+
+    // Endpoint data pelanggan + kendaraan untuk dropdown antrian pengerjaan
+    Route::get('/customers-for-antrian', [CustomerController::class, 'listForAntrian']);
 
     // Kategori Barang Export
     Route::get('/item-categories-export', [ItemCategoryController::class, 'exportExcel']);
@@ -63,6 +72,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/spareparts-low-stock', [SparepartController::class, 'lowStock']);
     Route::get('/spareparts-export', [SparepartController::class, 'exportExcel']);
     Route::get('/spareparts-export-pdf', [SparepartController::class, 'exportPdf']);
+
+    // Suku Cadang Stocks (nested resource)
+    Route::get('/spareparts/{sparepartId}/stocks', [SparepartStockController::class, 'index']);
+    Route::post('/spareparts/{sparepartId}/stocks', [SparepartStockController::class, 'store']);
+    Route::post('/spareparts/{sparepartId}/stocks/bulk', [SparepartStockController::class, 'bulkStore']);
+    Route::put('/spareparts/{sparepartId}/stocks/{stockId}', [SparepartStockController::class, 'update']);
+    Route::delete('/spareparts/{sparepartId}/stocks/{stockId}', [SparepartStockController::class, 'destroy']);
 
     // Customer Export
     Route::get('/customers-export', [CustomerController::class, 'exportExcel']);

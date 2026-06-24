@@ -1,4 +1,4 @@
-﻿@extends('layouts.master')
+@extends('layouts.master')
 
 @section('title', 'Edit Jenis Mobil')
 @section('title_header', 'Master Data | Jenis Mobil')
@@ -27,6 +27,8 @@
         </div>
         <div>
             <label class="block text-[14px] font-bold text-[#213F5C] mb-2">Pilih Jenis Mesin (Bisa pilih banyak) *</label>
+            <input type="text" id="engineSearch" placeholder="Ketik untuk cari mesin..." 
+                class="w-full px-4 py-3 bg-[#F9FBFF] border border-[#E5E9F2] rounded-xl outline-none text-[14px] font-semibold text-[#213F5C] focus:border-orange-500 mb-2">
             <p class="text-[11px] text-gray-400 mb-2 font-medium italic">Tahan tombol <b>Ctrl</b> atau <b>Cmd</b> buat milih banyak brok.</p>
             <select id="engine_ids" multiple class="w-full px-4 py-3 bg-[#F9FBFF] border border-[#E5E9F2] rounded-xl outline-none min-h-40 focus:border-orange-500">
                 </select>
@@ -51,20 +53,19 @@
         const token = localStorage.getItem('access_token');
         const engineSelect = document.getElementById('engine_ids');
 
+        let allEngines = [];
+
        async function initEditPage() {
             try {
                 // 1. Load Semua Mesin
-                const resEngines = await fetch('/api/engine-types', {
+                const resEngines = await fetch('/api/engine-types?limit=200', {
                     headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
                 });
                 const resultEngines = await resEngines.json();
-                const engines = resultEngines.data.data || resultEngines.data;
+                allEngines = resultEngines.data || [];
                 
                 if (resEngines.ok) {
-                    engineSelect.innerHTML = '';
-                    engines.forEach(e => {
-                        engineSelect.innerHTML += `<option value="${e.engine_type_id}" data-name="${e.name}">${e.name} (${e.engine_cap}cc)</option>`;
-                    });
+                    renderEngineOptions(allEngines);
                 }
 
                 // 2. Load Data Mobil & Set Value
@@ -81,10 +82,7 @@
                     
                     // --- LOGIC SELECT BANYAK MESIN  ---
                     if (data.engine_code) {
-                        // Pecah string "M54, M55" jadi array ["M54", "M55"]
                         const savedEngines = data.engine_code.split(',').map(s => s.trim());
-
-                        // Looping semua option di select
                         for (let option of engineSelect.options) {
                             const engineName = option.getAttribute('data-name');
                             if (savedEngines.includes(engineName)) {
@@ -96,14 +94,57 @@
             } catch (error) { console.error(error); }
         }
 
+        function renderEngineOptions(engines) {
+            const selectedValues = Array.from(engineSelect.selectedOptions).map(o => o.value);
+            engineSelect.innerHTML = '';
+            engines.forEach(e => {
+                const opt = document.createElement('option');
+                opt.value = e.engine_type_id;
+                opt.setAttribute('data-name', e.name);
+                opt.text = `${e.name} (${e.engine_cap}cc)`;
+                if (selectedValues.includes(String(e.engine_type_id))) opt.selected = true;
+                engineSelect.appendChild(opt);
+            });
+        }
+
+        document.getElementById('engineSearch').addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase();
+            const filtered = q ? allEngines.filter(eng => 
+                eng.name.toLowerCase().includes(q) || 
+                String(eng.engine_cap).includes(q)
+            ) : allEngines;
+            renderEngineOptions(filtered);
+        });
+
         document.getElementById('submitBtnApi').onclick = async (e) => {
             e.preventDefault();
+            
+            // 1. Ambil value dan bersihkan spasi
+            const chassisVal = document.getElementById('chassis_number').value.trim();
+            const nameVal = document.getElementById('name').value.trim();
+            const seriesVal = document.getElementById('series').value.trim();
             const selectedEngines = Array.from(engineSelect.selectedOptions).map(opt => opt.value);
 
+            // 2. Kumpulkan field mandatory yang masih kosong
+            let emptyFields = [];
+
+            if (!chassisVal) emptyFields.push('Kode Sasis');
+            if (!nameVal) emptyFields.push('Nama Model');
+            if (!seriesVal) emptyFields.push('Seri');
+            if (selectedEngines.length === 0) emptyFields.push('Jenis Mesin');
+
+            // 3. Tampilkan Swal jika ada yang terlewat
+            if (emptyFields.length > 0) {
+                let errorMessage = emptyFields.join(', ') + ' tidak boleh kosong!';
+                Swal.fire('Data Belum Lengkap!', errorMessage, 'warning');
+                return;
+            }
+
+            // 4. Lanjut susun payload
             const updatedData = {
-                chassis_number: document.getElementById('chassis_number').value,
-                name: document.getElementById('name').value,
-                series: document.getElementById('series').value,
+                chassis_number: chassisVal,
+                name: nameVal,
+                series: seriesVal,
                 engine_ids: selectedEngines // Kirim array ID
             };
 
@@ -125,9 +166,9 @@
                     window.location.href = "{{ route('jenis-mobil.index') }}";
                 } else {
                     const err = await res.json();
-                    Swal.fire('Gagal!', err.message || 'Cek lagi inputannya.', 'error');
+                    Swal.fire('Peringatan!', err.message || 'Cek lagi inputannya.', 'warning');
                 }
-            } catch (error) { Swal.fire('Error!', 'Koneksi API putus brok.', 'error'); }
+            } catch (error) { Swal.fire('Error!', 'Koneksi API putus.', 'error'); }
         };
 
         document.addEventListener('DOMContentLoaded', initEditPage);

@@ -1,21 +1,27 @@
 <?php
 
+use App\Http\Controllers\EmployeeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\SupplierController; 
-use App\Http\Controllers\EngineTypeController; 
-use App\Http\Controllers\MetricsController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\EngineTypeController;
+use App\Http\Controllers\CarTypeController;
+use App\Http\Controllers\AntrianPengerjaanController;
+use App\Http\Controllers\PayrollController;
+use App\Http\Controllers\NotaController;
 
-Route::get('/metrics', MetricsController::class)->name('metrics');
 
 // Route Login
 Route::get('/', function () {
     return view('login');
 })->name('login');
 
+// Route Beranda
+Route::get('/beranda', function () {
+    return view('pages.beranda');
+})->name('beranda.index');
+
 // Route Master Data -> Pelanggan
-
-
 Route::get('/pelanggan', function () {
     return view('pages.pelanggan.pelanggan');
 })->name('pelanggan.index');
@@ -70,8 +76,8 @@ Route::get('/jenis-mobil/edit/{id}', function ($id) {
 Route::get('/jenis-mobil/delete/{id}', function ($id) {
     return view('pages.master_data.jenis_mobil.jenisMobil');
 })->name('jenis-mobil.delete');
-Route::get('/jenis-mobil/export/excel', [CarTypeController::class, 'exportExcel'])->name('jenis-mobil.export');
-Route::get('/jenis-mobil/export/pdf', [CarTypeController::class, 'exportPdf'])->name('jenis-mobil.export.pdf');
+Route::get('/jenis-mobil/export/excel', [CarTypeController::class, 'downloadExcel'])->name('jenis-mobil.export.excel');
+Route::get('/jenis-mobil/export/pdf', [CarTypeController::class, 'downloadPdf'])->name('jenis-mobil.export.pdf');
 
 //Route Master Data -> Kategori Sparepart
 Route::get('/kategori-sparepart', function () {
@@ -125,11 +131,15 @@ Route::get('/manajemen-pegawai/edit/{id}', function ($id) {
 Route::get('/manajemen-pegawai/delete/{id}', function ($id) {
     return view('pages.manajemen_pegawai.data_manajemenPegawai');
 })->name('manajemen-pegawai.delete');
+Route::get('/manajemen-pegawai/export', [EmployeeController::class, 'exportExcel'])->name('manajemen-pegawai.export');
+Route::get('/manajemen-pegawai/export/pdf', [EmployeeController::class, 'exportPdf'])->name('manajemen-pegawai.export.pdf');
 
 // Route Kepegawaian -> Laporan Absensi
-Route::get('/laporan-absensi', function () {
-    return view('pages.laporan_absensi.laporanAbsensi');
-})->name('laporan-absensi.index');
+use App\Http\Controllers\AttendanceController;
+Route::get('/laporan-absensi', [AttendanceController::class, 'reportManual'])->name('attendance.report');
+Route::post('/laporan-absensi/manual', [AttendanceController::class, 'storeManual'])->name('attendance.storeManual');
+Route::get('/laporan-absensi', [AttendanceController::class, 'reportManual'])->name('laporan-absensi.index');
+Route::get('/attendance/rekap', [AttendanceController::class, 'getRekapData'])->name('attendance.rekap');
 
 // Route Kepegawaian -> Pendataan Izin
 Route::get('/izin-terlambat', function () {
@@ -148,6 +158,7 @@ Route::get('/izin-terlambat/delete/{id}', function ($id) {
     return view('pages.izin_keterlambatan.manajemenIzinKeterlambatan');
 })->name('izin-terlambat.delete');
 
+
 // Route Kepegawaian -> Penggajian
 Route::get('/payroll', function () {
     return view('pages.payroll.payroll');
@@ -164,9 +175,8 @@ Route::get('/payroll/edit/{id}', function ($id) {
 Route::get('/payroll/delete/{id}', function ($id) {
     return view('pages.payroll.payroll');
 })->name('payroll.delete');
+Route::get('/payroll/{id}', [PayrollController::class, 'show'])->name('payroll.show');
 
-
-// Route Layanan Servis -> Penerimaan Servis
 // Route Layanan Servis -> Antrian Pengerjaan 
 Route::get('/manajemen-servis', function () {
     return view('pages.manajemen_servis_mobil.manajemenServisMobil');
@@ -185,7 +195,18 @@ Route::get('/manajemen-servis/delete/{id}', function ($id) {
 })->name('manajemen-servis.delete');
 
 // Route Layanan Servis -> Riwayat Transaksi
-// Masih belum ada
+Route::get('/riwayat-transaksi', function () {
+    return view('pages.riwayat_transaksi.riwayatTransaksi');
+})->name('riwayat-transaksi.index');
+Route::get('/riwayat-transaksi/detail/{id}', function ($id) {
+    return view('pages.riwayat_transaksi.detailRiwayatTransaksi');
+})->name('riwayat-transaksi.show');
+Route::get('/riwayat-transaksi/delete/{id}', function ($id) {
+    return view('pages.riwayat_transaksi.riwayatTransaksi');
+})->name('riwayat-transaksi.delete');
+Route::get('/riwayat-transaksi/{id}/nota', function ($id) {
+    return view('pages.riwayat_transaksi.notaPembayaran');
+})->name('riwayat-transaksi.nota');
 
 // Route Manajemen Stok -> Data Suku Cadang
 Route::get('/suku-cadang', function () {
@@ -203,3 +224,28 @@ Route::get('/suku-cadang/edit/{id}', function ($id) {
 Route::get('/suku-cadang/delete/{id}', function ($id) {
     return view('pages.suku_cadang.sukuCadang');
 })->name('suku-cadang.delete');
+
+//buat Antrian Pengerjaan
+Route::get('/antrian-pengerjaan', function () {
+    return view('pages.antrian_pengerjaan.manajemenAntrianPengerjaan');
+})->name('antrian-pengerjaan.index');
+Route::get('/antrian-pengerjaan/create', function () {
+    return view('pages.antrian_pengerjaan.tambahManajemenAntrianPengerjaan');
+})->name('antrian-pengerjaan.create');
+Route::get('/antrian-pengerjaan/{id}', function ($id) {
+    return view('pages.antrian_pengerjaan.detailManajemenAntrianPengerjaan');
+})->name('antrian-pengerjaan.show');
+Route::get('/antrian-pengerjaan/{id}/edit', function ($id) {
+    return view('pages.antrian_pengerjaan.editManajemenAntrianPengerjaan');
+})->name('antrian-pengerjaan.edit');
+Route::get('/antrian-pengerjaan/{id}/pembayaran', function ($id) {
+    return view('pages.antrian_pengerjaan.prosesPembayaran');
+})->name('antrian-pengerjaan.pembayaran');
+
+// Preview nota (HTML page — data jasa dibawa via sessionStorage)
+Route::get('/antrian-pengerjaan/{id}/nota-preview', [NotaController::class, 'previewPage'])
+    ->name('antrian-pengerjaan.previewNota');
+
+// Download / stream PDF nota
+Route::post('/antrian-pengerjaan/{id}/nota-pdf', [NotaController::class, 'downloadPdf'])
+    ->name('antrian-pengerjaan.notaPdf');

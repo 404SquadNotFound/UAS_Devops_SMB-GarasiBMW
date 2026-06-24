@@ -11,7 +11,7 @@
     <th class="px-6 py-5">Model Mobil</th>
     <th class="px-6 py-5">Kode Mesin</th>
     <th class="px-6 py-5">Status</th>
-    <th class="px-6 py-5 text-center">Action</th>
+    <th class="px-6 py-5 text-center">Aksi</th>
 @endsection
 
 @section('table_body')
@@ -57,6 +57,18 @@
         'addUrl' => route('manajemen-servis.create'),'',
         'btnText' => 'Tambah Servis Mobil'
     ])
+    {{-- Script: sembunyikan tombol tambah untuk role CEO --}}
+    <script>
+        (function() {
+            const role = (localStorage.getItem('user_role') || '').toLowerCase();
+            if (role === 'ceo') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    const addBtn = document.querySelector('a[href="{{ route('manajemen-servis.create') }}"]');
+                    if (addBtn) addBtn.style.display = 'none';
+                });
+            }
+        })();
+    </script>
 
         @include('layouts.table_wrapper', [
             // Data dummy, nanti ini dihapus jika sudah pakai data dari Controller

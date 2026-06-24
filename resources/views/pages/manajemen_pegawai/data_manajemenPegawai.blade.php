@@ -1,7 +1,7 @@
-﻿@extends('layouts.master')
+@extends('layouts.master')
 
-@section('title', 'Manajemen Karyawan')
-@section('title_header', 'Manajemen Pegawai | Data Karyawan')
+@section('title', 'Manajemen Pegawai')
+@section('title_header', 'Manajemen Pegawai | Data Pegawai')
 
 {{-- 1. WAJIB ADA HEADER TABEL --}}
 @section('table_header')
@@ -10,25 +10,39 @@
     <th class="px-6 py-5 whitespace-nowrap">Durasi Kerja</th>
     <th class="px-6 py-5 whitespace-nowrap">Role</th>
     <th class="px-6 py-5 whitespace-nowrap">Status</th>
-    <th class="px-6 py-5 text-center whitespace-nowrap">Action</th>
+    <th class="px-6 py-5 text-center whitespace-nowrap">Aksi</th>
 @endsection
 
 {{-- 2. WAJIB ADA BODY TABEL DENGAN ID YANG SESUAI SCRIPT --}}
 @section('table_body')
     <tbody id="employeeTableBody">
         <tr>
-            <td colspan="6" class="text-center py-10 text-gray-400 italic">Memuat data karyawan...</td>
+            <td colspan="6" class="text-center py-10 text-gray-400 italic">Memuat data pegawai...</td>
         </tr>
     </tbody>
 @endsection
 
 @section('content')
     @include('layouts.action_bar', [
-        'placeholder'   => 'Cari Nama Karyawan...',
+        'placeholder' => 'Cari Nama Karyawan...',
         'filterModalId' => 'modalFilterKaryawan',
-        'addUrl'        => route('manajemen-pegawai.create'),
-        'btnText'       => 'Tambah Akun'
+        'addUrl' => route('manajemen-pegawai.create'),
+        'btnText' => 'Tambah Akun',
+        'exportExcelUrl' => route('manajemen-pegawai.export'),
+        'exportPdfUrl' => route('manajemen-pegawai.export.pdf'),
     ])
+    {{-- Script: sembunyikan tombol tambah untuk role CEO --}}
+    <script>
+        (function() {
+            const role = (localStorage.getItem('user_role') || '').toLowerCase();
+            if (role === 'ceo') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    const addBtn = document.querySelector('a[href="{{ route('manajemen-pegawai.create') }}"]');
+                    if (addBtn) addBtn.style.display = 'none';
+                });
+            }
+        })();
+    </script>
 
     @include('layouts.table_wrapper')
 
@@ -36,30 +50,38 @@
     <div id="modalFilterKaryawan" class="fixed inset-0 z-50 hidden overflow-y-auto">
         <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" onclick="toggleModal('modalFilterKaryawan')"></div>
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="relative bg-white rounded-[20px] shadow-2xl w-full max-w-md overflow-hidden transform transition-all">
+            <div
+                class="relative bg-white rounded-[20px] shadow-2xl w-full max-w-md overflow-hidden transform transition-all">
                 <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
                     <h3 class="text-lg font-bold text-[#213F5C]">Filter Karyawan</h3>
                     <button onclick="toggleModal('modalFilterKaryawan')" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
                     </button>
                 </div>
                 <div class="p-6 space-y-4">
                     <div>
                         <label class="block text-[13px] font-bold text-[#627D98] mb-2 uppercase tracking-wider">Role</label>
-                        <select id="filterRole" class="w-full px-4 py-3 bg-[#F9FBFF] border border-[#D9E2EC] rounded-xl outline-none text-[#213F5C] font-semibold">
+                        <select id="filterRole"
+                            class="w-full px-4 py-3 bg-[#F9FBFF] border border-[#D9E2EC] rounded-xl outline-none text-[#213F5C] font-semibold">
                             <option value="">Semua Role</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[13px] font-bold text-[#627D98] mb-2 uppercase tracking-wider">Status</label>
-                        <select id="filterStatus" class="w-full px-4 py-3 bg-[#F9FBFF] border border-[#D9E2EC] rounded-xl outline-none text-[#213F5C] font-semibold">
+                        <label
+                            class="block text-[13px] font-bold text-[#627D98] mb-2 uppercase tracking-wider">Status</label>
+                        <select id="filterStatus"
+                            class="w-full px-4 py-3 bg-[#F9FBFF] border border-[#D9E2EC] rounded-xl outline-none text-[#213F5C] font-semibold">
                             <option value="">Semua Status</option>
                         </select>
                     </div>
                 </div>
                 <div class="px-6 py-5 bg-gray-50 flex gap-3">
-                    <button onclick="resetFilter()" class="flex-1 py-3 bg-white border border-[#D9E2EC] text-[#627D98] font-bold rounded-xl text-[14px] hover:bg-gray-100 transition-all">Reset</button>
-                    <button onclick="applyFilter()" class="flex-1 py-3 bg-[#1273EB] text-white font-bold rounded-xl text-[14px] hover:bg-[#0E62CC] transition-all shadow-lg shadow-blue-100">Terapkan</button>
+                    <button onclick="resetFilter()"
+                        class="flex-1 py-3 bg-white border border-[#D9E2EC] text-[#627D98] font-bold rounded-xl text-[14px] hover:bg-gray-100 transition-all">Reset</button>
+                    <button onclick="applyFilter()"
+                        class="flex-1 py-3 bg-[#1273EB] text-white font-bold rounded-xl text-[14px] hover:bg-[#0E62CC] transition-all shadow-lg shadow-blue-100">Terapkan</button>
                 </div>
             </div>
         </div>
@@ -76,7 +98,7 @@
         }
 
         // 1. Fetch Data Utama
-        async function fetchEmployees(search = '', role = '', status = '') {
+        async function fetchEmployees(search = '', role = '', status = '', page = 1) {
             const tbody = document.getElementById('employeeTableBody');
             const fromEl = document.getElementById('paginationFrom');
             const toEl = document.getElementById('paginationTo');
@@ -85,9 +107,12 @@
             if (!tbody) return;
 
             try {
-                const url = `/api/employees?limit=10&search=${search}&role=${role}&status=${status}`;
+                const url = `/api/employees?limit=10&search=${search}&role=${role}&status=${status}&page=${page}`;
                 const res = await fetch(url, {
-                    headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
 
                 const result = await res.json();
@@ -105,7 +130,7 @@
                                         <svg class="w-24 h-24 text-gray-200 mb-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                         </svg>
-                                        <h3 class="text-[16px] font-bold text-[#213F5C] mb-1">Data karyawan tidak ditemukan</h3>
+                                        <h3 class="text-[16px] font-bold text-[#213F5C] mb-1">Data Pegawai tidak ditemukan</h3>
                                         <p class="text-[13px] text-gray-400 font-medium">Coba cek keyword pencarian atau tambahkan data baru.</p>
                                     </div>
                                 </td>
@@ -118,21 +143,42 @@
                     }
 
                     // RENDER DATA (Kalo ada)
+                    // Helper: hitung durasi kerja dari join_date ke sekarang
+                    function calcDurasiKerja(joinDateStr) {
+                        if (!joinDateStr) return '-';
+                        const join = new Date(joinDateStr);
+                        const now  = new Date();
+                        let years  = now.getFullYear() - join.getFullYear();
+                        let months = now.getMonth() - join.getMonth();
+                        if (months < 0) { years--; months += 12; }
+                        if (years === 0 && months === 0) return 'Baru bergabung';
+                        const yPart = years  > 0 ? `${years} Tahun`  : '';
+                        const mPart = months > 0 ? `${months} Bulan` : '';
+                        return [yPart, mPart].filter(Boolean).join(' ');
+                    }
+
                     items.forEach(item => {
                         const isAktif = item.status == 1 || item.status === true || item.status === 'aktif';
-                        const statusBadge = isAktif
-                            ? '<span class="px-2.5 py-1 rounded-md bg-green-50 text-green-600 text-[11px] font-bold">Aktif</span>'
-                            : '<span class="px-2.5 py-1 rounded-md bg-red-50 text-red-500 text-[11px] font-bold">Non-Aktif</span>';
+                        const statusBadge = isAktif ?
+                            '<span class="px-2.5 py-1 rounded-md bg-green-50 text-green-600 text-[11px] font-bold">Aktif</span>' :
+                            '<span class="px-2.5 py-1 rounded-md bg-red-50 text-red-500 text-[11px] font-bold">Non-Aktif</span>';
 
                         tbody.innerHTML += `
                             <tr class="hover:bg-[#F9FCFF] transition-colors group">
                                 <td class="px-6 py-[18px] font-bold text-[#213F5C]">${item.name}</td>
                                 <td class="px-6 py-[18px] text-[#213F5C] font-semibold text-[13px]">${item.email}</td>
-                                <td class="px-6 py-[18px] text-[#213F5C] font-semibold text-[13px]">${item.join_date ?? '-'}</td>
+                                <td class="px-6 py-[18px] text-[#213F5C] font-semibold text-[13px]">${calcDurasiKerja(item.join_date)}</td>
                                 <td class="px-6 py-[18px] text-[#213F5C] font-semibold text-[13px]">${item.role}</td>
                                 <td class="px-6 py-[18px] text-[#213F5C] font-semibold text-[13px]">${statusBadge}</td>
-                                <td class="px-6 py-[18px] text-center">
-                                    <a href="/manajemen-pegawai/detail/${item.employees_id}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#EAF2FF] text-[#1273EB] border border-[#B1D3FF] rounded-full text-[12px] font-bold hover:bg-[#D4E8FF]">Detail</a>
+                                <td class="px-6 py-4.5 text-center">
+                                    <a href="/manajemen-pegawai/detail/${item.employees_id}"
+                                        onclick="goToDetail(event, ${item.employees_id})"
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#EAF2FF] text-[#1273EB] border border-[#B1D3FF] rounded-full text-[12px] font-bold hover:bg-[#D4E8FF] transition-all">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Detail
+                                    </a>
                                 </td>
                             </tr>`;
                     });
@@ -140,17 +186,19 @@
                     if (fromEl) fromEl.innerText = result.from || 0;
                     if (toEl) toEl.innerText = result.to || 0;
                     if (totalEl) totalEl.innerText = result.total || 0;
+                    renderPaginationControls(result, (p) => fetchEmployees(search, role, status, p));
                 }
             } catch (e) {
                 console.error(e);
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-red-500">Gagal load data. Cek koneksi API!</td></tr>';
+                tbody.innerHTML =
+                    '<tr><td colspan="6" class="text-center py-10 text-red-500">Gagal load data. Cek koneksi API!</td></tr>';
             }
         }
 
         async function loadFilterOptions() {
             const roleSelect = document.getElementById('filterRole');
             const statusSelect = document.getElementById('filterStatus');
-            
+
             const roleSelected = roleSelect.value;
             const statusSelected = statusSelect.value;
 
@@ -160,26 +208,32 @@
                 if (statusSelected) queryParams.append('status', statusSelected);
 
                 const res = await fetch(`/api/employee-options?${queryParams.toString()}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
                 const result = await res.json();
-                
+
                 if (res.ok && result.data) {
                     roleSelect.innerHTML = '<option value="">Semua Role</option>';
                     statusSelect.innerHTML = '<option value="">Semua Status</option>';
 
                     if (result.data.roles) {
                         result.data.roles.forEach(r => {
-                            roleSelect.innerHTML += `<option value="${r}" ${r === roleSelected ? 'selected' : ''}>${r}</option>`;
+                            roleSelect.innerHTML +=
+                                `<option value="${r}" ${r === roleSelected ? 'selected' : ''}>${r}</option>`;
                         });
                     }
                     if (result.data.statuses) {
                         Object.entries(result.data.statuses).forEach(([val, label]) => {
-                            statusSelect.innerHTML += `<option value="${val}" ${val === statusSelected ? 'selected' : ''}>${label}</option>`;
+                            statusSelect.innerHTML +=
+                                `<option value="${val}" ${val === statusSelected ? 'selected' : ''}>${label}</option>`;
                         });
                     }
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+            }
         }
 
         // Cascading: update options saat filter diganti

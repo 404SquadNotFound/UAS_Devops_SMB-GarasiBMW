@@ -1,12 +1,12 @@
-﻿@extends('layouts.master')
+@extends('layouts.master')
 
-@section('title', 'Kategori Sparepart')
-@section('title_header', 'Master Data | Kategori Sparepart')
+@section('title', 'Kategori Barang')
+@section('title_header', 'Master Data | Kategori Barang')
 
 @section('table_header')
     <th class="px-6 py-5">Nama Kategori Sparepart</th>
     <th class="px-6 py-5">Deskripsi</th>
-    <th class="px-6 py-5 text-center">Action</th>
+    <th class="px-6 py-5 text-center">Aksi</th>
 @endsection
 
 @section('table_body')
@@ -22,9 +22,22 @@
         'placeholder' => 'Cari Kategori Sparepart...',
         'addUrl' => route('kategori-sparepart.create'),
         'btnText' => 'Tambah Kategori Sparepart',
-        'exportExcelUrl'=> 'javascript:exportItemCategory()',
-        'exportPdfUrl'  => 'javascript:exportItemCategoryPdf()'
+        'exportExcelUrl' => 'javascript:exportItemCategory()',
+        'exportPdfUrl' => 'javascript:exportItemCategoryPdf()',
     ])
+    {{-- Script: sembunyikan tombol tambah untuk role CEO, admin, kepala_bengkel --}}
+    <script>
+        (function() {
+            const role = (localStorage.getItem('user_role') || '').toLowerCase();
+            const noAdd = ['ceo', 'admin', 'kepala_bengkel'];
+            if (noAdd.includes(role)) {
+                document.addEventListener('DOMContentLoaded', function() {
+                    const addBtn = document.querySelector('a[href="{{ route('kategori-sparepart.create') }}"]');
+                    if (addBtn) addBtn.style.display = 'none';
+                });
+            }
+        })();
+    </script>
 
     @include('layouts.table_wrapper')
 
@@ -34,7 +47,7 @@
         const token = localStorage.getItem('access_token');
 
         // 1. Fungsi Fetch Data Utama
-        async function fetchCategories(search = '') {
+        async function fetchCategories(search = '', page = 1) {
             const tbody = document.getElementById('categoryTableBody');
             const fromEl = document.getElementById('paginationFrom');
             const toEl = document.getElementById('paginationTo');
@@ -43,11 +56,14 @@
             if (!tbody) return;
 
             try {
-                const url = `/api/item-categories?limit=10&search=${search}`;
+                const url = `/api/item-categories?limit=10&search=${encodeURIComponent(search)}&page=${page}`;
                 const res = await fetch(url, {
-                    headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
-                
+
                 const result = await res.json();
 
                 if (res.ok) {
@@ -68,10 +84,11 @@
                                     </div>
                                 </td>
                             </tr>`;
-                        
-                        if(fromEl) fromEl.innerText = 0; 
-                        if(toEl) toEl.innerText = 0; 
-                        if(totalEl) totalEl.innerText = 0;
+
+                        if (fromEl) fromEl.innerText = 0;
+                        if (toEl) toEl.innerText = 0;
+                        if (totalEl) totalEl.innerText = 0;
+                        renderPaginationControls(result, (p) => fetchCategories(search, p));
                         return;
                     }
 
@@ -81,45 +98,65 @@
                             <tr class="hover:bg-[#F9FCFF] transition-colors group">
                                 <td class="px-6 py-[18px] font-bold text-[#213F5C]">${item.name}</td>
                                 <td class="px-6 py-[18px] text-[#213F5C] font-semibold text-[13px]">${item.descriptions || '-'}</td>
-                                <td class="px-6 py-[18px] text-center">
+                                <td class="px-6 py-4.5 text-center">
                                     <a href="/kategori-sparepart/detail/${item.category_id}" 
-                                       class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#EAF2FF] text-[#1273EB] border border-[#B1D3FF] rounded-full text-[12px] font-bold hover:bg-[#D4E8FF]">
-                                       Detail
+                                        onclick="goToDetail(event, ${item.category_id})"
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#EAF2FF] text-[#1273EB] border border-[#B1D3FF] rounded-full text-[12px] font-bold hover:bg-[#D4E8FF] transition-all">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Detail
                                     </a>
                                 </td>
                             </tr>`;
                     });
 
                     // 4. Update Angka Pagination
-                    if(fromEl) fromEl.innerText = result.from || 0;
-                    if(toEl) toEl.innerText = result.to || 0;
-                    if(totalEl) totalEl.innerText = result.total || 0;
+                    if (fromEl) fromEl.innerText = result.from || 0;
+                    if (toEl) toEl.innerText = result.to || 0;
+                    if (totalEl) totalEl.innerText = result.total || 0;
+                    renderPaginationControls(result, (p) => fetchCategories(search, p));
+                } else {
+                    tbody.innerHTML =
+                        `<tr><td colspan="3" class="text-center py-10 text-red-500 font-bold">${result.message || 'Gagal mengambil data kategori'}</td></tr>`;
                 }
-            } catch (e) { 
+            } catch (e) {
                 console.error(e);
-                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-10 text-red-500 font-bold">Waduh, koneksi API kategori bermasalah brok!</td></tr>';
+                tbody.innerHTML =
+                    '<tr><td colspan="3" class="text-center py-10 text-red-500 font-bold">Waduh, koneksi API kategori bermasalah brok!</td></tr>';
             }
         }
 
-        // 5. Logic Debounce Search
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                fetchCategories(e.target.value);
-            }, 500);
-        });
-
-        // 6. Init Load
+        // 5. Init Load + Logic Debounce Search
         document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('searchInput');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(timeout);
+                    currentSearch = e.target.value;
+                    timeout = setTimeout(() => {
+                        fetchCategories(currentSearch, 1);
+                    }, 500);
+                });
+            }
+
             fetchCategories();
         });
 
-        // 7. Export Excel
+        // 6. Export Excel
         async function exportItemCategory() {
             try {
-                Swal.fire({ title: 'Mengekspor Excel...', text: 'Mohon tunggu', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                Swal.fire({
+                    title: 'Mengekspor Excel...',
+                    text: 'Mohon tunggu',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
                 const res = await fetch('/api/item-categories-export', {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
                 if (res.ok) {
                     const blob = await res.blob();
@@ -134,15 +171,25 @@
                 } else {
                     Swal.fire('Error', 'Gagal mengekspor data Excel', 'error');
                 }
-            } catch (e) { console.error(e); Swal.fire('Error', 'Terjadi kesalahan sistem', 'error'); }
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'Terjadi kesalahan sistem', 'error');
+            }
         }
 
-        // 8. Export PDF
+        // 7. Export PDF
         async function exportItemCategoryPdf() {
             try {
-                Swal.fire({ title: 'Mengekspor PDF...', text: 'Mohon tunggu', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                Swal.fire({
+                    title: 'Mengekspor PDF...',
+                    text: 'Mohon tunggu',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
                 const res = await fetch('/api/item-categories-export-pdf', {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
                 if (res.ok) {
                     const blob = await res.blob();
@@ -157,7 +204,17 @@
                 } else {
                     Swal.fire('Error', 'Gagal mengekspor data PDF', 'error');
                 }
-            } catch (e) { console.error(e); Swal.fire('Error', 'Terjadi kesalahan sistem', 'error'); }
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'Terjadi kesalahan sistem', 'error');
+            }
         }
+
+        {{-- Sembunyikan tombol Filter karena halaman ini tidak punya modal filter --}}
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterBtn = document.querySelector('button[onclick^="toggleModal"]');
+            if (filterBtn) filterBtn.style.display = 'none';
+        });
     </script>
 @endsection

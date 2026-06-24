@@ -13,12 +13,37 @@ class CustomerController extends Controller
 
     public function index(Request $request)
     {
-        $query = Customer::with('vehicles');
-        if ($request->has('search')) {
+        $query = Customer::with('vehicles.carType');
+
+        // 1. Filter Pencarian BARU JALAN kalau search BENAR-BENAR ADA ISINYA
+        if ($request->filled('search')) {
             $search = $request->search;
-            $query->where('name', 'LIKE', "%{$search}%")
-                ->orWhere('phone_number', 'LIKE', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('phone_number', 'LIKE', "%{$search}%");
+            });
         }
+
+        // 2. Filter Kendaraan (Hanya jalan kalau Model atau Seri dipilih)
+        if ($request->filled('car_type_id') || $request->filled('series')) {
+            $query->whereHas('vehicles', function ($q) use ($request) {
+
+                // Jika filter Model Mobil dipilih
+                if ($request->filled('car_type_id')) {
+                    $q->where('car_type_id', $request->car_type_id);
+                }
+
+                // Jika filter Seri Mobil dipilih (Menyeberang ke tabel car_types lewat relasi carType)
+                if ($request->filled('series')) {
+                    $series = $request->series;
+                    $q->whereHas('carType', function ($carTypeQuery) use ($series) {
+                        $carTypeQuery->where('series', $series);
+                    });
+                }
+
+            });
+        }
+
         return $query->orderBy('created_at', 'desc')->paginate($request->limit ?? 10);
     }
 
@@ -26,16 +51,20 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string',
-            'phone_number' => 'required|string',
+            'phone_number' => 'required|string|unique:customers,phone_number',
             'address' => 'required|string',
             'cars' => 'required|array|min:1',
             'cars.*.car_type_id' => 'required|exists:car_types,car_type_id',
-            'cars.*.license_plate' => 'required|string',
+            'cars.*.license_plate' => 'required|string|unique:vehicles,license_plate',
             'cars.*.km_reading' => 'nullable',
             'cars.*.year' => 'nullable',
             'cars.*.engine_name' => 'nullable|string',
+        ], [
+            'phone_number.unique' => 'Nomor telepon sudah terdaftar.',
+            'cars.*.license_plate.unique' => 'Plat nomor :input sudah terdaftar.',
         ]);
-        
+
+
         $validationResult = $customerService->formatAndValidate($validated['cars']);
 
         if (!$validationResult['success']) {
@@ -101,7 +130,7 @@ class CustomerController extends Controller
         ], 200);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $id, CustomerService $customerService)
     {
         $customer = Customer::findOrFail($id);
 
@@ -109,17 +138,69 @@ class CustomerController extends Controller
             'name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
             'address' => 'required|string',
+            'cars' => 'required|array|min:1',
+            'cars.*.car_type_id' => 'required|exists:car_types,car_type_id',
+            'cars.*.license_plate' => 'required|string',
+            'cars.*.km_reading' => 'nullable',
+            'cars.*.year' => 'nullable',
+            'cars.*.engine_name' => 'nullable|string',
         ]);
 
-        $validated['edited_by'] = $request->user()->employees_id ?? 1;
+        $validationResult = $customerService->formatAndValidate($validated['cars']);
 
-        $customer->update($validated);
+        if (!$validationResult['success']) {
+            return response()->json([
+                'message' => $validationResult['message']
+            ], 422);
+        }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data Pelanggan berhasil diupdate!',
-            'data' => $customer
-        ], 200);
+        $formattedCars = $validationResult['data'];
+
+        DB::beginTransaction();
+
+        try {
+            $customer->update([
+                'name' => $validated['name'],
+                'phone_number' => $validated['phone_number'],
+                'address' => $validated['address'],
+                'edited_by' => $request->user()->employees_id ?? 1
+            ]);
+
+            // Menghapus vehicle lama yang sudah tidak ada
+            $customer->vehicles()->delete();
+
+            // Insert ulang semua vehicle
+            foreach ($formattedCars as $carData) {
+                $carType = CarType::find($carData['car_type_id']);
+                $modelName = $carType ? $carType->name : 'Unknown Model';
+
+                $customer->vehicles()->create([
+                    'car_type_id' => $carData['car_type_id'],
+                    'model' => $modelName,
+                    'license_plate' => $carData['license_plate'],
+                    'odometer' => $carData['km_reading'] ?? 0,
+                    'production_code' => $carData['year'] ?? null,
+                    'engine_code' => $carData['engine_name'] ?? null,
+                    'created_by' => $request->user()->employees_id ?? 1
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data Pelanggan berhasil diupdate!',
+                'data' => $customer->load('vehicles')
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal update data: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function destroy($id)
@@ -142,5 +223,46 @@ class CustomerController extends Controller
     public function exportPdf(CustomerService $customerService)
     {
         return $customerService->downloadPdf();
+    }
+
+    /**
+     * List pelanggan + kendaraan mereka untuk dropdown di antrian pengerjaan
+     */
+    public function listForAntrian(Request $request)
+    {
+        $query = Customer::with(['vehicles']);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('phone_number', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $customers = $query->orderBy('name')->limit(30)->get()->map(function ($c) {
+            return [
+                'id' => $c->customer_id,
+                'nama' => $c->name,
+                'telepon' => $c->phone_number,
+                'alamat' => $c->address,
+                'vehicles' => $c->vehicles->map(function ($v) {
+                    return [
+                        'id' => $v->vehicles_id,
+                        'car_type_id' => $v->car_type_id,
+                        'model' => $v->model,
+                        'license_plate' => $v->license_plate,
+                        'engine_code' => $v->engine_code,
+                        'odometer' => $v->odometer,
+                        'label' => $v->model . ' — ' . $v->license_plate,
+                    ];
+                })->values(),
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $customers,
+        ]);
     }
 }

@@ -1,4 +1,4 @@
-﻿@extends('layouts.master')
+@extends('layouts.master')
 
 @section('title', 'Jenis Mesin')
 @section('title_header', 'Master Data | Jenis Mesin')
@@ -10,7 +10,7 @@
     <th class="px-6 py-5">Kapasitas Oli</th>
     <th class="px-6 py-5">Bahan Bakar</th>
     <th class="px-6 py-5">Kapasitas Mesin</th>
-    <th class="px-6 py-5 text-center">Action</th>
+    <th class="px-6 py-5 text-center">Aksi</th>
 @endsection
 
 {{-- 2. WAJIB ADA BODY TABEL DENGAN ID YANG SESUAI SCRIPT --}}
@@ -31,6 +31,19 @@
         'exportExcelUrl' => route('jenis-mesin.export'),
         'exportPdfUrl' => route('jenis-mesin.export.pdf')
     ])
+    {{-- Script: sembunyikan tombol tambah untuk role CEO, admin, kepala_bengkel --}}
+    <script>
+        (function() {
+            const role = (localStorage.getItem('user_role') || '').toLowerCase();
+            const noAdd = ['ceo', 'admin', 'kepala_bengkel'];
+            if (noAdd.includes(role)) {
+                document.addEventListener('DOMContentLoaded', function() {
+                    const addBtn = document.querySelector('a[href="{{ route('jenis-mesin.create') }}"]');
+                    if (addBtn) addBtn.style.display = 'none';
+                });
+            }
+        })();
+    </script>
 
     @include('layouts.table_wrapper')
 
@@ -80,7 +93,7 @@
         }
 
         // 1. Fetch Data Utama
-        async function fetchEngineTypes(search = '', fuel = '', cylinders = '') {
+        async function fetchEngineTypes(search = '', fuel = '', cylinders = '', page = 1) {
             const tbody = document.getElementById('engineTableBody');
             const fromEl = document.getElementById('paginationFrom');
             const toEl = document.getElementById('paginationTo');
@@ -89,7 +102,7 @@
             if (!tbody) return;
 
             try {
-                const url = `/api/engine-types?limit=10&search=${search}&fuel_type=${fuel}&cylinders=${cylinders}`;
+                const url = `/api/engine-types?limit=10&search=${search}&fuel_type=${fuel}&cylinders=${cylinders}&page=${page}`;
                 const res = await fetch(url, {
                     headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
                 });
@@ -132,15 +145,23 @@
                                     <span class="px-2.5 py-1 rounded-md ${item.fuel_type === 'Bensin' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'} text-[11px] font-bold">${item.fuel_type}</span>
                                 </td>
                                 <td class="px-6 py-[18px] text-[#213F5C] font-semibold text-[13px]">${item.engine_cap} cc</td>
-                                <td class="px-6 py-[18px] text-center">
-                                    <a href="/master-data/jenis-mesin/detail/${item.engine_type_id}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#EAF2FF] text-[#1273EB] border border-[#B1D3FF] rounded-full text-[12px] font-bold hover:bg-[#D4E8FF]">Detail</a>
+                                <td class="px-6 py-4.5 text-center">
+                                    <a href="/master-data/jenis-mesin/detail/${item.engine_type_id}"
+                                        onclick="goToDetail(event, ${item.engine_type_id})"
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#EAF2FF] text-[#1273EB] border border-[#B1D3FF] rounded-full text-[12px] font-bold hover:bg-[#D4E8FF] transition-all">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Detail
+                                    </a>
                                 </td>
                             </tr>`;
                     });
 
-                    if(fromEl) fromEl.innerText = result.from || 0;
-                    if(toEl) toEl.innerText = result.to || 0;
+                    if(fromEl) fromEl.innerText = result.from || 0; 
+                    if(toEl) toEl.innerText = result.to || 0; 
                     if(totalEl) totalEl.innerText = result.total || 0;
+                    renderPaginationControls(result, (p) => fetchEngineTypes(search, fuel, cylinders, p));
                 }
             } catch (e) { 
                 console.error(e);

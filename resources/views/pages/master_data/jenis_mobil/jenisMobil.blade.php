@@ -1,4 +1,4 @@
-﻿@extends('layouts.master')
+@extends('layouts.master')
 
 @section('title', 'Jenis Mobil')
 @section('title_header', 'Master Data | Jenis Mobil')
@@ -8,7 +8,7 @@
     <th class="px-6 py-5">Nama Model</th>
     <th class="px-6 py-5">Seri</th>
     <th class="px-6 py-5">Kode Mesin</th>
-    <th class="px-6 py-5 text-center">Action</th>
+    <th class="px-6 py-5 text-center">Aksi</th>
 @endsection
 
 @section('table_body')
@@ -22,10 +22,23 @@
         'placeholder' => 'Cari Jenis Mobil...',
         'filterModalId' => 'modalFilterMobil',
         'addUrl' => route('jenis-mobil.create'),
-        'btnText' => 'Tambah Jenis Mobil'
-        'exportExcelUrl' => route('jenis-mobil.export'),
+        'btnText' => 'Tambah Jenis Mobil',
+        'exportExcelUrl' => route('jenis-mobil.export.excel'),
         'exportPdfUrl' => route('jenis-mobil.export.pdf'),  
     ])
+    {{-- Script: sembunyikan tombol tambah untuk role CEO, admin, kepala_bengkel --}}
+    <script>
+        (function() {
+            const role = (localStorage.getItem('user_role') || '').toLowerCase();
+            const noAdd = ['ceo', 'admin', 'kepala_bengkel'];
+            if (noAdd.includes(role)) {
+                document.addEventListener('DOMContentLoaded', function() {
+                    const addBtn = document.querySelector('a[href="{{ route('jenis-mobil.create') }}"]');
+                    if (addBtn) addBtn.style.display = 'none';
+                });
+            }
+        })();
+    </script>
 
     @include('layouts.table_wrapper')
 
@@ -72,14 +85,14 @@
             if (modal) modal.classList.toggle('hidden');
         }
 
-        async function fetchCarTypes(search = '', series = '', engine_id = '') {
+        async function fetchCarTypes(search = '', series = '', engine_id = '', page = 1) {
             const tbody = document.getElementById('carTableBody');
             const fromEl = document.getElementById('paginationFrom');
             const toEl = document.getElementById('paginationTo');
             const totalEl = document.getElementById('paginationTotal');
 
             try {
-                const res = await fetch(`/api/car-types?limit=10&search=${search}&series=${series}&engine_type_id=${engine_id}`, {
+                const res = await fetch(`/api/car-types?limit=10&search=${search}&series=${series}&engine_type_id=${engine_id}&page=${page}`, {
                     headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
                 });
                 const result = await res.json();
@@ -124,8 +137,15 @@
                                 <td class="px-6 py-[18px] text-[#213F5C] font-semibold text-[13px]">
                                     ${engineDisplay}
                                 </td>
-                                <td class="px-6 py-[18px] text-center">
-                                    <a href="/jenis-mobil/detail/${item.car_type_id}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#EAF2FF] text-[#1273EB] border border-[#B1D3FF] rounded-full text-[12px] font-bold hover:bg-[#D4E8FF]">Detail</a>
+                                <td class="px-6 py-4.5 text-center">
+                                    <a href="/jenis-mobil/detail/${item.car_type_id}"
+                                        onclick="goToDetail(event, ${item.car_type_id})"
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#EAF2FF] text-[#1273EB] border border-[#B1D3FF] rounded-full text-[12px] font-bold hover:bg-[#D4E8FF] transition-all">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Detail
+                                    </a>
                                 </td>
                             </tr>`;
                     });
@@ -133,6 +153,7 @@
                     if(fromEl) fromEl.innerText = result.from || 0;
                     if(toEl) toEl.innerText = result.to || 0;
                     if(totalEl) totalEl.innerText = result.total || 0;
+                    renderPaginationControls(result, (p) => fetchCarTypes(search, series, engine_id, p));
                 }
             } catch (e) { 
                 console.error(e); 
@@ -171,12 +192,12 @@
             try {
                 const headers = { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' };
 
-                // 1. Load Mesin (Tetap)
-                const resEngine = await fetch('/api/engine-types', { headers });
+                // 1. Load Mesin (Semua data)
+                const resEngine = await fetch('/api/engine-types?limit=200', { headers });
                 const resultEngine = await resEngine.json();
                 if (resEngine.ok) {
                     const selectEngine = document.getElementById('filterEngineType');
-                    const engines = resultEngine.data.data || resultEngine.data; 
+                    const engines = resultEngine.data || [];
                     engines.forEach(e => {
                         const opt = document.createElement('option');
                         opt.value = e.engine_type_id;

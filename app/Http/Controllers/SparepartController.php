@@ -64,7 +64,7 @@ class SparepartController extends Controller
 
     public function show($id)
     {
-        $sparepart = Sparepart::with(['category', 'supplier', 'carType'])->find($id);
+        $sparepart = Sparepart::with(['category', 'supplier', 'carType', 'stocks.supplier'])->find($id);
 
         if (!$sparepart) {
             return response()->json([
@@ -85,7 +85,6 @@ class SparepartController extends Controller
             'item_category_id' => 'required|exists:item_categories,category_id',
             'supplier_id' => 'nullable|exists:suppliers,supplier_id',
             'car_type_id' => 'nullable|exists:car_types,car_type_id',
-            'item_code' => 'required|string|unique:spareparts,item_code',
             'name' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'cost_off_sell' => 'required|numeric',
@@ -94,6 +93,40 @@ class SparepartController extends Controller
             'date' => 'required|date',
         ]);
 
+        $categoryName = strtolower($request->category);
+        $prefix = 'item';
+        
+        if (str_contains($categoryName, 'oli') || str_contains($categoryName, 'cairan')) {
+            $prefix = 'oil';
+        } elseif (str_contains($categoryName, 'pengereman') || str_contains($categoryName, 'brake')) {
+            $prefix = 'brake';
+        } elseif (str_contains($categoryName, 'mesin') || str_contains($categoryName, 'engine')) {
+            $prefix = 'eng';
+        } elseif (str_contains($categoryName, 'kaki') || str_contains($categoryName, 'suspension')) {
+            $prefix = 'susp';
+        } elseif (str_contains($categoryName, 'elektrikal') || str_contains($categoryName, 'electrical')) {
+            $prefix = 'elec';
+        } else {
+            $words = explode(' ', $categoryName);
+            if (count($words) > 0) {
+                $prefix = preg_replace('/[^a-z]/', '', $words[0]);
+                if (empty($prefix)) {
+                    $prefix = 'item';
+                }
+            }
+        }
+
+        $latestParts = Sparepart::where('item_code', 'LIKE', $prefix . '-%')->pluck('item_code');
+        $maxNumber = 0;
+        foreach ($latestParts as $code) {
+            $parts = explode('-', $code);
+            $number = (int)end($parts);
+            if ($number > $maxNumber) {
+                $maxNumber = $number;
+            }
+        }
+        
+        $validated['item_code'] = $prefix . '-' . ($maxNumber + 1);
         $validated['created_by'] = $request->user()->employees_id ?? 1;
 
         $sparepart = Sparepart::create($validated);
@@ -200,5 +233,54 @@ class SparepartController extends Controller
                 'orientation' => 'portrait'
             ]
         );
+    }
+
+    /**
+     * List suku cadang untuk dropdown di antrian pengerjaan
+     */
+    public function listForAntrian(Request $request)
+    {
+        $query = Sparepart::with(['supplier', 'carType'])
+            ->where('quantity', '>', 0);
+
+        if ($request->filled('car_type_id')) {
+            $carTypeId = $request->car_type_id;
+            $carType = \App\Models\CarType::find($carTypeId);
+            $engineTypeId = $carType ? $carType->engine_type_id : null;
+
+            $query->where(function ($q) use ($carTypeId, $engineTypeId) {
+                // 1. Generic spare parts (car_type_id is null)
+                $q->whereNull('car_type_id')
+                  // 2. Specific to this car type
+                  ->orWhere('car_type_id', $carTypeId);
+                  
+                // 3. Specific to same engine type (if engineTypeId is not null)
+                if ($engineTypeId) {
+                    $q->orWhereHas('carType', function ($ctQ) use ($engineTypeId) {
+                        $ctQ->where('engine_type_id', $engineTypeId);
+                    });
+                }
+            });
+        }
+
+        $spareparts = $query->orderBy('name')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id'            => $item->sparepart_id,
+                    'nama'          => $item->name,
+                    'stok'          => $item->quantity,
+                    'harga'         => 'Rp ' . number_format($item->selling_price, 0, ',', '.'),
+                    'selling_price' => $item->selling_price,
+                    'jumlah_satuan' => '1 pcs',
+                    'tanggal'       => $item->date ? \Carbon\Carbon::parse($item->date)->format('d M Y') : '-',
+                    'supplier'      => $item->supplier?->name ?? '-',
+                ];
+            });
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => $spareparts,
+        ]);
     }
 }

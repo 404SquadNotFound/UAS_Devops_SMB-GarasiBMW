@@ -1,4 +1,4 @@
-﻿@extends('layouts.master')
+@extends('layouts.master')
 
 @section('title', 'Tambah Supplier')
 @section('title_header', 'Master Data | Supplier')
@@ -6,7 +6,7 @@
 @section('table_header')
     <th class="px-6 py-5">Nama Supplier</th>
     <th class="px-6 py-5">Deskripsi</th>
-    <th class="px-6 py-5 text-center">Action</th>
+    <th class="px-6 py-5 text-center">Aksi</th>
 @endsection
 
 @section('table_body')
@@ -23,20 +23,33 @@
         'exportExcelUrl' => route('supplier.export'),
         'exportPdfUrl' => route('supplier.export.pdf'),
     ])
+    {{-- Script: sembunyikan tombol tambah untuk role CEO, admin, kepala_bengkel --}}
+    <script>
+        (function() {
+            const role = (localStorage.getItem('user_role') || '').toLowerCase();
+            const noAdd = ['ceo', 'admin', 'kepala_bengkel'];
+            if (noAdd.includes(role)) {
+                document.addEventListener('DOMContentLoaded', function() {
+                    const addBtn = document.querySelector('a[href="{{ route('supplier.create') }}"]');
+                    if (addBtn) addBtn.style.display = 'none';
+                });
+            }
+        })();
+    </script>
     @include('layouts.table_wrapper')
 
     <script>
         let timeout = null;
         const token = localStorage.getItem('access_token');
 
-        async function fetchSuppliers(search = '') {
+        async function fetchSuppliers(search = '', page = 1) {
             const tbody = document.getElementById('supplierTableBody');
             const fromEl = document.getElementById('paginationFrom');
             const toEl = document.getElementById('paginationTo');
             const totalEl = document.getElementById('paginationTotal');
 
             try {
-                const res = await fetch(`/api/suppliers?limit=10&search=${search}`, {
+                const res = await fetch(`/api/suppliers?limit=10&search=${search}&page=${page}`, {
                     headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
                 });
                 const result = await res.json();
@@ -66,21 +79,34 @@
                             <tr class="hover:bg-[#F9FCFF] transition-colors">
                                 <td class="px-6 py-[18px] font-bold text-[#213F5C]">${item.name}</td>
                                 <td class="px-6 py-[18px] text-[#213F5C] font-semibold text-[13px]">${item.description || '-'}</td>
-                                <td class="px-6 py-[18px] text-center">
-                                    <a href="/supplier/detail/${item.supplier_id}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#EAF2FF] text-[#1273EB] border border-[#B1D3FF] rounded-full text-[12px] font-bold hover:bg-[#D4E8FF]">Detail</a>
+                                <td class="px-6 py-4.5 text-center">
+                                    <a href="/supplier/detail/${item.supplier_id}"
+                                        onclick="goToDetail(event, ${item.supplier_id})"
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#EAF2FF] text-[#1273EB] border border-[#B1D3FF] rounded-full text-[12px] font-bold hover:bg-[#D4E8FF] transition-all">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Detail
+                                    </a>
                                 </td>
                             </tr>`;
                     });
                     fromEl.innerText = result.from || 0; toEl.innerText = result.to || 0; totalEl.innerText = result.total || 0;
+                    renderPaginationControls(result, (p) => fetchSuppliers(search, p));
                 }
             } catch (e) { console.error(e); }
         }
 
         document.getElementById('searchInput').addEventListener('input', (e) => {
             clearTimeout(timeout);
-            timeout = setTimeout(() => fetchSuppliers(e.target.value), 500);
+            timeout = setTimeout(() => fetchSuppliers(e.target.value, 1), 500);
         });
 
         document.addEventListener('DOMContentLoaded', () => fetchSuppliers());
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterBtn = document.querySelector('button[onclick^="toggleModal"]');
+            if (filterBtn) filterBtn.style.display = 'none';
+        });
     </script>
 @endsection

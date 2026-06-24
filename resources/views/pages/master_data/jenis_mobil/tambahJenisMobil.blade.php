@@ -1,4 +1,4 @@
-﻿@extends('layouts.master')
+@extends('layouts.master')
 
 @section('title', 'Tambah Jenis Mobil')
 @section('title_header', 'Master Data | Jenis Mobil')
@@ -29,6 +29,8 @@
         </div>
         <div>
             <label class="block text-[14px] font-bold text-[#213F5C] mb-2">Pilih Jenis Mesin (Bisa pilih banyak) *</label>
+            <input type="text" id="engineSearch" placeholder="Ketik untuk cari mesin..." 
+                class="w-full px-4 py-3 bg-[#F9FBFF] border border-[#E5E9F2] rounded-xl outline-none text-[14px] font-semibold text-[#213F5C] focus:border-[#1273EB] mb-2">
             <p class="text-[11px] text-gray-400 mb-2 font-medium italic">Tahan tombol <b>Ctrl (Windows)</b> atau <b>Cmd (Mac)</b> buat milih lebih dari satu mesin brok.</p>
             <select id="engine_ids" multiple class="w-full px-4 py-3 bg-[#F9FBFF] border border-[#E5E9F2] rounded-xl outline-none min-h-40 focus:border-[#1273EB] scrollbar-hide">
                 <option value="" disabled>-- Sedang memuat mesin... --</option>
@@ -62,24 +64,19 @@
         const token = localStorage.getItem('access_token');
         const engineSelect = document.getElementById('engine_ids');
 
-        // 1. Ambil data Jenis Mesin buat Dropdown (Cuma satu fungsi aja)
+        let allEngines = [];
+
+        // 1. Ambil SEMUA data Jenis Mesin buat Dropdown
         async function loadEngineTypes() {
             try {
-                const res = await fetch('/api/engine-types', {
+                const res = await fetch('/api/engine-types?limit=200', {
                     headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
                 });
                 const result = await res.json();
                 
                 if (res.ok) {
-                    engineSelect.innerHTML = ''; // Kosongin loading
-                    const engines = result.data.data || result.data; // Handle Laravel Paginate
-                    
-                    engines.forEach(engine => {
-                        const option = document.createElement('option');
-                        option.value = engine.engine_type_id;
-                        option.text = `${engine.name} (${engine.engine_cap}cc)`;
-                        engineSelect.appendChild(option);
-                    });
+                    allEngines = result.data || [];
+                    renderEngineOptions(allEngines);
                 }
             } catch (e) { 
                 console.error("Gagal muat mesin:", e);
@@ -87,22 +84,61 @@
             }
         }
 
+        function renderEngineOptions(engines) {
+            // Simpan selected values sebelum re-render
+            const selectedValues = Array.from(engineSelect.selectedOptions).map(o => o.value);
+            engineSelect.innerHTML = '';
+            engines.forEach(engine => {
+                const option = document.createElement('option');
+                option.value = engine.engine_type_id;
+                option.text = `${engine.name} (${engine.engine_cap}cc)`;
+                if (selectedValues.includes(String(engine.engine_type_id))) option.selected = true;
+                engineSelect.appendChild(option);
+            });
+        }
+
+        // Search/filter engine options
+        document.getElementById('engineSearch').addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase();
+            const filtered = q ? allEngines.filter(eng => 
+                eng.name.toLowerCase().includes(q) || 
+                String(eng.engine_cap).includes(q)
+            ) : allEngines;
+            renderEngineOptions(filtered);
+        });
+
         // 2. Proses Simpan
         document.getElementById('submitBtnApi').onclick = async (e) => {
             e.preventDefault();
 
+            // Ambil value dan bersihkan spasi untuk input text
+            const chassisVal = document.getElementById('chassis_number').value.trim();
+            const nameVal = document.getElementById('name').value.trim();
+            const seriesVal = document.getElementById('series').value.trim();
+            
             // Ambil array ID yang dipilih di multiple select
             const selectedEngines = Array.from(engineSelect.selectedOptions).map(opt => opt.value);
 
-            if (selectedEngines.length === 0) {
-                Swal.fire('Eitss!', 'Pilih minimal satu mesin brok!', 'warning');
+            // Kumpulkan field mandatory yang masih kosong
+            let emptyFields = [];
+
+            if (!chassisVal) emptyFields.push('Kode Sasis');
+            if (!nameVal) emptyFields.push('Nama Model');
+            if (!seriesVal) emptyFields.push('Seri');
+            if (selectedEngines.length === 0) emptyFields.push('Jenis Mesin');
+
+            // Tampilkan Swal jika ada yang terlewat
+            if (emptyFields.length > 0) {
+                let errorMessage = emptyFields.join(', ') + ' tidak boleh kosong!';
+                Swal.fire('Data Belum Lengkap!', errorMessage, 'warning');
                 return;
             }
 
+            // Lanjut susun payload jika aman
             const data = {
-                chassis_number: document.getElementById('chassis_number').value,
-                name: document.getElementById('name').value,
-                series: document.getElementById('series').value,
+                chassis_number: chassisVal,
+                name: nameVal,
+                series: seriesVal,
                 engine_ids: selectedEngines // Kirim sebagai array
             };
 
@@ -124,10 +160,10 @@
                     window.location.href = "{{ route('jenis-mobil.index') }}"; 
                 } else {
                     const err = await res.json();
-                    Swal.fire('Gagal!', err.message || 'Cek inputan lu brok.', 'error');
+                    Swal.fire('Peringatan!', err.message || 'Mohon cek inputanmu.', 'warning');
                 }
             } catch (error) {
-                Swal.fire('Error!', 'Backend lu pingsan kali brok.', 'error');
+                Swal.fire('Error!', 'Koneksi API terputus.', 'error');
             }
         };
 

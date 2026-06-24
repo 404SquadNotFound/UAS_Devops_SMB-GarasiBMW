@@ -3,11 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
+use App\Http\Services\EmployeeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class EmployeeController extends Controller
 {
+    protected $employeeService;
+
+    public function __construct(EmployeeService $employeeService)
+    {
+        $this->employeeService = $employeeService;
+    }
+
     public function index(Request $request)
     {
         $query = Employee::query();
@@ -51,16 +59,27 @@ class EmployeeController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'join_date' => 'required|date',
             'birth_date' => 'required|date',
             'address' => 'required|string',
             'email' => 'required|email|unique:employees,email',
             'password' => 'required|min:6',
-            'role' => 'required|in:pemilik_bengkel,finance,kepala_bengkel,kepala_admin,admin,karyawan',
+            'role' => 'required|in:ceo,finance,kepala_bengkel,kepala_admin,admin,karyawan',
             'base_salary' => 'required|numeric',
+        ], [
+            'email.unique' => 'Email ini sudah digunakan! 1 Pegawai harus menggunakan 1 email unik yang berbeda dan tidak boleh sama.'
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        $validated = $validator->validated();
 
         $validated['password'] = Hash::make($validated['password']);
 
@@ -103,11 +122,11 @@ class EmployeeController extends Controller
     public function destroy($id)
     {
         $employee = Employee::findOrFail($id);
-        $employee->update(['status' => false]);
+        $employee->delete();
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Pegawai berhasil dinonaktifkan!',
+            'message' => 'Pegawai berhasil dihapus!',
         ], 200);
     }
 
@@ -143,5 +162,15 @@ class EmployeeController extends Controller
                 'statuses' => $statuses
             ]
         ]);
+    }
+
+    public function exportExcel()
+    {
+        return $this->employeeService->downloadExcel();
+    }
+
+    public function exportPdf()
+    {
+        return $this->employeeService->downloadPdf();
     }
 }

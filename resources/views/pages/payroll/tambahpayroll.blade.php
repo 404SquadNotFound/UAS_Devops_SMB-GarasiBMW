@@ -1,7 +1,7 @@
-﻿@extends('layouts.master')
+@extends('layouts.master')
 
-@section('title', 'Tambah Gaji Karyawan')
-@section('title_header', 'Payroll | Tambah Gaji Karyawan')
+@section('title', 'Tambah Gaji Pegawai')
+@section('title_header', 'Payroll | Tambah Gaji Pegawai')
 
 @section('form_icon')
     <div
@@ -12,27 +12,27 @@
     </div>
 @endsection
 
-@section('form_title', 'Menambahkan Data Gaji Karyawan')
+@section('form_title', 'Menambahkan Data Gaji Pegawai')
 
 @section('form_fields')
     <form id="addPayrollForm" class="space-y-6">
 
-        {{-- Informasi Pribadi Karyawan --}}
+        {{-- Informasi Pribadi Pegawai --}}
         <div class="bg-white border border-[#E5E9F2] rounded-2xl p-6 space-y-4">
             <div class="flex items-center gap-2 mb-2">
                 <svg class="w-5 h-5 text-[#1273EB]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
                 </svg>
-                <h3 class="text-[15px] font-bold text-[#213F5C]">Informasi Pribadi Karyawan</h3>
+                <h3 class="text-[15px] font-bold text-[#213F5C]">Informasi Pribadi Pegawai</h3>
             </div>
 
             <div>
-                <label class="block text-[14px] font-bold text-[#213F5C] mb-2">Karyawan <span
+                <label class="block text-[14px] font-bold text-[#213F5C] mb-2">Pegawai <span
                         class="text-red-500">*</span></label>
                 <select id="employee_id" required
                     class="w-full px-5 py-3.5 bg-[#F9FBFF] border border-[#E5E9F2] rounded-xl outline-none text-[14px] text-[#213F5C]">
-                    <option value="" disabled selected>Pilih Karyawan</option>
+                    <option value="" disabled selected>Pilih Pegawai</option>
                 </select>
             </div>
 
@@ -227,6 +227,8 @@
 
         // ─── Load Karyawan ────────────────────────────────────────────────────────
 
+        let employeeCache = [];
+
         async function loadEmployees() {
             try {
                 const token = localStorage.getItem('access_token');
@@ -235,17 +237,27 @@
                 });
                 const result = await response.json();
                 const select = document.getElementById('employee_id');
-                const employees = result.data ?? result;
+                const employees = result.data?.data ?? result.data ?? result;
+                employeeCache = employees;
                 employees.forEach(emp => {
                     const opt = document.createElement('option');
-                    opt.value = emp.id;
-                    opt.textContent = `${emp.name} — ${emp.employee_number ?? emp.npk ?? ''}`;
+                    opt.value = emp.employees_id;
+                    opt.textContent = `${emp.name} — ${emp.role ?? ''}`;
+                    opt.dataset.salary = emp.base_salary ?? 0;
                     select.appendChild(opt);
                 });
             } catch (err) {
                 console.error('Gagal memuat data karyawan:', err);
             }
         }
+
+        // Auto-fill gaji pokok saat pegawai dipilih
+        document.getElementById('employee_id').addEventListener('change', function() {
+            const selected = this.options[this.selectedIndex];
+            if (selected && selected.dataset.salary) {
+                document.getElementById('basic_salary').value = selected.dataset.salary;
+            }
+        });
 
         loadEmployees();
 
@@ -299,7 +311,7 @@
                     didOpen: () => { Swal.showLoading(); }
                 });
 
-                const response = await fetch('/api/payroll', {
+                const response = await fetch('/api/payrolls', {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',

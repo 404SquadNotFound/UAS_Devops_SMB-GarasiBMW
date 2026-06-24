@@ -1,4 +1,4 @@
-﻿@extends('layouts.master')
+@extends('layouts.master')
 
 @section('title', 'Tambah Data Pegawai')
 @section('title_header', 'Manajemen Pegawai')
@@ -14,7 +14,9 @@
 @section('form_title', 'Membuat Akun Pegawai Baru')
 
 @section('form_fields')
-    <form id="addPegawaiForm" class="space-y-6">
+    <form id="addPegawaiForm" class="space-y-6" autocomplete="off">
+        <input style="display:none" type="email" name="fakeusernameremembered"/>
+        <input style="display:none" type="password" name="fakepasswordremembered"/>
 
         {{-- Informasi Pribadi Pegawai --}}
         <div class="bg-white border border-[#E5E9F2] rounded-2xl p-6 space-y-4">
@@ -73,7 +75,7 @@
                 <label class="block text-[14px] font-bold text-[#213F5C] mb-2">
                     Email <span class="text-red-500">*</span>
                 </label>
-                <input type="email" id="email" required placeholder="nama@email.com"
+                <input type="email" id="email" required placeholder="nama@email.com" autocomplete="off"
                     class="w-full px-5 py-3.5 bg-[#F9FBFF] border border-[#E5E9F2] rounded-xl outline-none text-[14px] text-[#213F5C] placeholder-gray-400">
             </div>
 
@@ -81,7 +83,7 @@
                 <label class="block text-[14px] font-bold text-[#213F5C] mb-2">
                     Password <span class="text-red-500">*</span>
                 </label>
-                <input type="password" id="password" required placeholder="••••••••"
+                <input type="password" id="password" required placeholder="••••••••" autocomplete="new-password"
                     class="w-full px-5 py-3.5 bg-[#F9FBFF] border border-[#E5E9F2] rounded-xl outline-none text-[14px] text-[#213F5C] placeholder-gray-400">
             </div>
 
@@ -92,7 +94,7 @@
                 <select id="role" required
                     class="w-full px-5 py-3.5 bg-[#F9FBFF] border border-[#E5E9F2] rounded-xl outline-none text-[14px] text-[#213F5C]">
                     <option value="" disabled selected>Pilih Role</option>
-                    <option value="pemilik_bengkel">Pemilik Bengkel</option>
+                    <option value="ceo">CEO</option>
                     <option value="finance">Finance</option>
                     <option value="kepala_bengkel">Kepala Bengkel</option>
                     <option value="kepala_admin">Kepala Admin</option>
@@ -147,6 +149,14 @@
 
         // ─── Tambah Pendapatan Lain ───────────────────────────────
         let extraCount = 0;
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const today = `${year}-${month}-${day}`;
+
+        document.getElementById('join_date').setAttribute('max', today);
+        document.getElementById('birth_date').setAttribute('max', today);
 
         function tambahPendapatan() {
             extraCount++;
@@ -186,16 +196,54 @@
         // ─── Submit ───────────────────────────────────────────────
         document.getElementById('submitBtnApi').onclick = async (e) => {
             e.preventDefault();
-            const token = localStorage.getItem('access_token');
 
+            // 1. Ambil value dan bersihkan dari spasi berlebih
+            const nameVal = document.getElementById('name').value.trim();
+            const joinDateVal = document.getElementById('join_date').value.trim();
+            const birthDateVal = document.getElementById('birth_date').value.trim();
+            const addressVal = document.getElementById('address').value.trim();
+            const emailVal = document.getElementById('email').value.trim();
+            const passwordVal = document.getElementById('password').value.trim();
+            const roleVal = document.getElementById('role').value;
+
+            // 2. Cek mandatory fields
+            let emptyFields = [];
+
+            if (!nameVal) emptyFields.push('Nama Lengkap');
+            
+            if (!joinDateVal) {
+                emptyFields.push('Tanggal Bergabung');
+            } else if (joinDateVal > today) {
+                emptyFields.push('Tanggal Bergabung tidak valid');
+            }
+
+            if (!birthDateVal) {
+                emptyFields.push('Tanggal Lahir');
+            } else if (birthDateVal > today) {
+                emptyFields.push('Tanggal Lahir tidak valid');
+            }
+
+            if (!addressVal) emptyFields.push('Alamat');
+            if (!emailVal) emptyFields.push('Email');
+            if (!passwordVal) emptyFields.push('Password');
+            if (!roleVal) emptyFields.push('Roles');
+
+            if (emptyFields.length > 0) {
+                let errorMessage = emptyFields.join(', ') + ' tidak boleh kosong!';
+                Swal.fire('Data Belum Lengkap!', errorMessage, 'warning');
+                return;
+            }
+
+            // 4. Lanjut hit API jika semua aman
+            const token = localStorage.getItem('access_token');
             const data = {
-                name:        document.getElementById('name').value,
-                join_date:   document.getElementById('join_date').value,
-                birth_date:  document.getElementById('birth_date').value,
-                address:     document.getElementById('address').value,
-                email:       document.getElementById('email').value,
-                password:    document.getElementById('password').value,
-                role:        document.getElementById('role').value,
+                name:        nameVal,
+                join_date:   joinDateVal,
+                birth_date:  birthDateVal,
+                address:     addressVal,
+                email:       emailVal,
+                password:    passwordVal,
+                role:        roleVal,
                 base_salary: Number(document.getElementById('base_salary').value) || 0,
             };
 

@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ asset('assets/login-assets/login-logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -74,7 +75,7 @@
 
                     <div class="flex items-center gap-3">
                         <div
-                            class="flex items-center gap-2.5 bg-[#F7F9FC] border border-[#D9E2EC] px-3 py-1.5 rounded-lg">
+                            class="flex items-center gap-2.5 bg-[#F7F9FC] border border-[#D9E2EC] px-3 h-12 rounded-lg">
                             <div id="user-initial"
                                 class="w-9 h-9 rounded-full bg-[#213F5C] flex items-center justify-center text-white font-bold text-[14px]">
                                 ?
@@ -87,8 +88,9 @@
                                 </p>
                             </div>
                         </div>
+
                         <button onclick="handleLogout()"
-                            class="flex items-center gap-2 bg-[#FFF5F5] border border-[#FFDADA] text-[#CF3C3C] font-bold px-5 py-2.5 rounded-lg text-[13px] hover:bg-[#FFE8E8] transition-all">
+                            class="flex items-center justify-center gap-2 bg-[#FFF5F5] border border-[#FFDADA] text-[#CF3C3C] font-bold px-5 h-12 rounded-lg text-[13px] hover:bg-[#FFE8E8] transition-all">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5"
                                 viewBox="0 0 24 24">
                                 <path
@@ -111,6 +113,32 @@
         </main>
     </div>
     <script>
+            // ── Auth Guard: tolak akses kalau belum login ──
+        (function () {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                // Simpan flag ke sessionStorage agar login page tampilkan alert
+                sessionStorage.setItem('no_session', '1');
+                window.location.replace('/');
+                return;
+            }
+
+            // ── Role Guard: tolak role guest & karyawan ──
+            const role = (localStorage.getItem('user_role') || '').toLowerCase();
+            const blockedRoles = ['karyawan', 'guest'];
+            if (blockedRoles.includes(role)) {
+                // Simpan flag ke sessionStorage agar login page bisa tampilkan alert
+                sessionStorage.setItem('blocked_role', role);
+                localStorage.clear();
+                window.location.replace('/');
+            }
+        })();
+
+        // ── Helper global: ambil role user saat ini ──
+        function getUserRole() {
+            return (localStorage.getItem('user_role') || '').toLowerCase();
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const name = localStorage.getItem('user_name') || 'User';
             const role = localStorage.getItem('user_role') || 'Guest';
@@ -130,12 +158,12 @@
             localStorage.setItem('user_role', role);
 
             // Update DOM header langsung
-            const nameEl    = document.getElementById('user-name-header');
-            const roleEl    = document.getElementById('user-role-header');
+            const nameEl = document.getElementById('user-name-header');
+            const roleEl = document.getElementById('user-role-header');
             const initialEl = document.getElementById('user-initial');
 
-            if (nameEl)    nameEl.innerText    = name;
-            if (roleEl)    roleEl.innerText    = role.replace(/_/g, ' ');
+            if (nameEl) nameEl.innerText = name;
+            if (roleEl) roleEl.innerText = role.replace(/_/g, ' ');
             if (initialEl) initialEl.innerText = name.charAt(0).toUpperCase();
         }
 
@@ -153,6 +181,96 @@
                 localStorage.clear();
                 window.location.href = '/';
             }
+        }
+
+        /**
+         * Global pagination helper.
+         * @param {object} result  - API paginated response (with current_page, last_page, from, to, total)
+         * @param {function} fetchFn - The fetch function to call when a page button is clicked, receives (page)
+         */
+        function renderPaginationControls(result, fetchFn) {
+            const container = document.getElementById('paginationControls');
+            const fromEl = document.getElementById('paginationFrom');
+            const toEl = document.getElementById('paginationTo');
+            const totalEl = document.getElementById('paginationTotal');
+
+            if (fromEl) fromEl.innerText = result.from ?? 0;
+            if (toEl) toEl.innerText = result.to ?? 0;
+            if (totalEl) totalEl.innerText = result.total ?? 0;
+
+            if (!container) return;
+            container.innerHTML = '';
+
+            const currentPage = result.current_page ?? 1;
+            const lastPage = result.last_page ?? 1;
+
+            if (lastPage <= 1) return;
+
+            // Style helpers
+            const btnBase = 'w-8 h-8 flex items-center justify-center rounded-lg text-[12px] font-bold transition-all';
+            const btnActive = 'bg-[#1273EB] text-white shadow-sm';
+            const btnNormal = 'bg-white border border-[#D9E2EC] text-[#627D98] hover:bg-[#EAF2FF] hover:text-[#1273EB]';
+            const btnDisabled = 'bg-[#F0F4F8] text-[#CBD5E1] cursor-not-allowed border border-[#E2E8F0]';
+
+            // Previous button
+            const prevBtn = document.createElement('button');
+            prevBtn.innerHTML = '‹';
+            prevBtn.className = `${btnBase} ${currentPage === 1 ? btnDisabled : btnNormal}`;
+            prevBtn.disabled = currentPage === 1;
+            if (currentPage > 1) prevBtn.addEventListener('click', () => fetchFn(currentPage - 1));
+            container.appendChild(prevBtn);
+
+            // Page number buttons (show max 5 around current)
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(lastPage, currentPage + 2);
+            if (endPage - startPage < 4) {
+                if (startPage === 1) endPage = Math.min(lastPage, startPage + 4);
+                else startPage = Math.max(1, endPage - 4);
+            }
+
+            if (startPage > 1) {
+                const first = document.createElement('button');
+                first.textContent = '1';
+                first.className = `${btnBase} ${btnNormal}`;
+                first.addEventListener('click', () => fetchFn(1));
+                container.appendChild(first);
+                if (startPage > 2) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '…';
+                    dots.className = 'w-6 text-center text-[#627D98] text-[12px]';
+                    container.appendChild(dots);
+                }
+            }
+
+            for (let p = startPage; p <= endPage; p++) {
+                const btn = document.createElement('button');
+                btn.textContent = p;
+                btn.className = `${btnBase} ${p === currentPage ? btnActive : btnNormal}`;
+                if (p !== currentPage) btn.addEventListener('click', () => fetchFn(p));
+                container.appendChild(btn);
+            }
+
+            if (endPage < lastPage) {
+                if (endPage < lastPage - 1) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '…';
+                    dots.className = 'w-6 text-center text-[#627D98] text-[12px]';
+                    container.appendChild(dots);
+                }
+                const last = document.createElement('button');
+                last.textContent = lastPage;
+                last.className = `${btnBase} ${btnNormal}`;
+                last.addEventListener('click', () => fetchFn(lastPage));
+                container.appendChild(last);
+            }
+
+            // Next button
+            const nextBtn = document.createElement('button');
+            nextBtn.innerHTML = '›';
+            nextBtn.className = `${btnBase} ${currentPage === lastPage ? btnDisabled : btnNormal}`;
+            nextBtn.disabled = currentPage === lastPage;
+            if (currentPage < lastPage) nextBtn.addEventListener('click', () => fetchFn(currentPage + 1));
+            container.appendChild(nextBtn);
         }
     </script>
 </body>

@@ -1,7 +1,7 @@
-﻿@extends('layouts.master')
+@extends('layouts.master')
 
-@section('title', 'Edit Gaji Karyawan')
-@section('title_header', 'Payroll | Edit Gaji Karyawan')
+@section('title', 'Edit Gaji Pegawai')
+@section('title_header', 'Payroll | Edit Gaji Pegawai')
 
 @section('form_icon')
     <div
@@ -13,7 +13,7 @@
     </div>
 @endsection
 
-@section('form_title', 'Edit Data Gaji Karyawan')
+@section('form_title', 'Edit Data Gaji Pegawai')
 
 @section('form_fields')
     {{-- Loading skeleton --}}
@@ -35,22 +35,22 @@
 
     <form id="editPayrollForm" class="space-y-6 hidden">
 
-        {{-- Informasi Pribadi Karyawan --}}
+        {{-- Informasi Pribadi Pegawai--}}
         <div class="bg-white border border-[#E5E9F2] rounded-2xl p-6 space-y-4">
             <div class="flex items-center gap-2 mb-2">
                 <svg class="w-5 h-5 text-[#1273EB]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
                 </svg>
-                <h3 class="text-[15px] font-bold text-[#213F5C]">Informasi Pribadi Karyawan</h3>
+                <h3 class="text-[15px] font-bold text-[#213F5C]">Informasi Pribadi Pegawai</h3>
             </div>
 
             <div>
-                <label class="block text-[14px] font-bold text-[#213F5C] mb-2">Karyawan <span
+                <label class="block text-[14px] font-bold text-[#213F5C] mb-2">Pegawai <span
                         class="text-red-500">*</span></label>
                 <select id="employee_id" required
                     class="w-full px-5 py-3.5 bg-[#F9FBFF] border border-[#E5E9F2] rounded-xl outline-none text-[14px] text-[#213F5C]">
-                    <option value="" disabled selected>Pilih Karyawan</option>
+                    <option value="" disabled selected>Pilih Pegawai</option>
                 </select>
             </div>
 
@@ -159,7 +159,19 @@
 
     <script>
         // ─── ID dari URL ──────────────────────────────────────────────────────────
-        const PAYROLL_ID = @json(request()->route('id'));
+        function getPayrollId() {
+            const fromSession = sessionStorage.getItem('currentPayrollId');
+            if (fromSession) return parseInt(fromSession, 10);
+            const segments = window.location.pathname.split('/').filter(Boolean);
+            // URL: /payroll/edit/{id}
+            for (let i = 0; i < segments.length; i++) {
+                if (segments[i] === 'edit' && segments[i + 1]) return parseInt(segments[i + 1], 10);
+            }
+            const id = @json(request()->route('id'));
+            return id ? parseInt(id, 10) : null;
+        }
+
+        const PAYROLL_ID = getPayrollId();
 
         // ─── Dynamic Row Helpers ──────────────────────────────────────────────────
 
@@ -283,7 +295,7 @@
                     fetch('/api/employees', {
                         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
                     }),
-                    fetch(`/api/payroll/${PAYROLL_ID}`, {
+                    fetch(`/api/payrolls/${PAYROLL_ID}`, {
                         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
                     }),
                 ]);
@@ -294,27 +306,27 @@
                 if (!payrollRes.ok) throw new Error(payrollResult.message ?? 'Data tidak ditemukan');
 
                 const payroll   = payrollResult.data ?? payrollResult;
-                const employees = empResult.data ?? empResult;
+                const employees = empResult.data?.data ?? empResult.data ?? empResult;
 
                 // Isi dropdown karyawan
                 const empSelect = document.getElementById('employee_id');
                 employees.forEach(emp => {
                     const opt = document.createElement('option');
-                    opt.value       = emp.id;
-                    opt.textContent = `${emp.name} — ${emp.employee_number ?? emp.npk ?? ''}`;
-                    if (String(emp.id) === String(payroll.employee_id)) opt.selected = true;
+                    opt.value       = emp.employees_id;
+                    opt.textContent = `${emp.name} — ${emp.role ?? ''}`;
+                    if (String(emp.employees_id) === String(payroll.employee?.id)) opt.selected = true;
                     empSelect.appendChild(opt);
                 });
 
                 // Isi field statis
-                document.getElementById('month').value        = payroll.month        ?? '';
-                document.getElementById('year').value         = payroll.year         ?? '';
-                document.getElementById('basic_salary').value = payroll.basic_salary ?? '';
+                document.getElementById('month').value        = payroll.month ?? '';
+                document.getElementById('year').value         = payroll.year ?? '';
+                document.getElementById('basic_salary').value = payroll.salary?.base_salary ?? '';
 
                 // Isi rows dinamis dari data yang ada
-                (payroll.incomes   ?? []).forEach(r => buatRow('income_list',  INCOME_FIELDS,  { name: r.name, type: r.type, amount: r.amount }));
-                (payroll.savings   ?? []).forEach(r => buatRow('saving_list',  SAVING_FIELDS,  { name: r.name, type: r.type, amount: r.amount, month_target: r.month_target }));
-                (payroll.penalties ?? []).forEach(r => buatRow('penalty_list', PENALTY_FIELDS, { name: r.name, info: r.info, amount: r.amount }));
+                (payroll.salary?.allowances ?? []).forEach(r => buatRow('income_list',  INCOME_FIELDS,  { name: r.name, type: r.type, amount: r.amount }));
+                (payroll.salary?.savings    ?? []).forEach(r => buatRow('saving_list',  SAVING_FIELDS,  { name: r.name, type: r.type, amount: r.amount, month_target: '' }));
+                (payroll.salary?.penalties  ?? []).forEach(r => buatRow('penalty_list', PENALTY_FIELDS, { name: r.name, info: r.description, amount: r.amount }));
 
                 // Tampilkan form, sembunyikan skeleton
                 document.getElementById('loadingState').classList.add('hidden');
@@ -368,7 +380,7 @@
                     didOpen: () => { Swal.showLoading(); }
                 });
 
-                const response = await fetch(`/api/payroll/${PAYROLL_ID}`, {
+                const response = await fetch(`/api/payrolls/${PAYROLL_ID}`, {
                     method: 'PUT',
                     headers: {
                         'Accept': 'application/json',
